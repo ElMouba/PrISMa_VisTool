@@ -1,9 +1,4 @@
-''' A weather chart for three cities using a csv file.
-This illustration demonstrates different interpretation of the same data
-with the distribution option.
-.. note::
-    This example needs the Scipy and Pandas package to run. See
-    ``README.md`` for more information.
+''' Filtering of screened CURATED COFs.
 '''
 import datetime
 import glob,os
