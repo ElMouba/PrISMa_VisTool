@@ -18,7 +18,7 @@ from bokeh.models import ColumnDataSource, Select, HoverTool, Span, DataTable, T
 from bokeh.plotting import figure
 
 #reading COFs results
-cofs = pd.read_csv(os.path.join("../output_data/new/all_oldnew_conv.csv"))
+cofs = pd.read_csv(join(dirname(__file__), "all_oldnew_conv.csv"))
 
 cofs = cofs.drop(['pk', 'homo_energy', 'lumo_energy', 'path',
        'potential', 'var', 'homo_align', 'lumo_align', 'direct_band_gap_energy',
