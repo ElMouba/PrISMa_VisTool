@@ -216,7 +216,7 @@ columns = [
 ]
 data_table = DataTable(source=source, columns=columns, width=800)
 
-text = Div(text="""Values displayed here are to be considered with caution. Please keep in mind that this is a screening approach, therefore further theoretical and experimental studies are encouraged. (1) References: <a href="https://doi.org/10.1002/adts.201800146">Original work</a>, <a href="https://doi.org/10.1002/adts.201800146">HER/OER</a>, <a href="https://doi.org/10.1039/C5TA06982C">CO2RR</a>, <a href="https://doi.org/10.1021/acscentsci.0c00552">NRR</a>, <a href="https://doi.org/10.1016/j.crci.2015.11.026">Sacrificial agents</a>, <a href="https://scholar.google.com/citations?view_op=view_citation&hl=en&user=C2OLFkAAAAAJ&citation_for_view=C2OLFkAAAAAJ:eQOLeE2rZwMC">Vacuum</a>, <a href="https://doi.org/10.1002/adts.201800146">CURATED COFs</a>.""", #change link to original work
+text = Div(text="""Values displayed here are to be considered with caution. Please keep in mind that this is a screening approach, therefore further theoretical and experimental studies are encouraged. (1) References: <a href="https://doi.org/10.1002/adts.201800146">HER/OER</a>, <a href="https://doi.org/10.1039/C5TA06982C">CO2RR</a>, <a href="https://doi.org/10.1021/acscentsci.0c00552">NRR</a>, <a href="https://doi.org/10.1016/j.crci.2015.11.026">Sacrificial agents</a>, <a href="https://scholar.google.com/citations?view_op=view_citation&hl=en&user=C2OLFkAAAAAJ&citation_for_view=C2OLFkAAAAAJ:eQOLeE2rZwMC">Vacuum</a>, <a href="https://doi.org/10.1002/adts.201800146">CURATED COFs</a>.""", #change link to original work
 width=250, height=200)
 
 button = Button(label="Download",width=250)
