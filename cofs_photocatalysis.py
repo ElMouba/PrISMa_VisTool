@@ -35,13 +35,17 @@ def get_dataset(src, ox, red, bgr, mer, mhr, ovlpr):
                          &(src['lumo_align_corr']>red)]
     filt_m = filt_redox[(filt_redox['effective_mass_electron']<mer)&(filt_redox['effective_mass_hole']<mhr)]
     filt_final = filt_m[(filt_m['spatial_overlap_corr']<ovlpr)]
-    return ColumnDataSource(data=filt_final)
+    exc = cofs[~(cofs['label'].isin(filt_final['label']))].reset_index(drop=True)
+    return ColumnDataSource(data=filt_final),ColumnDataSource(data=exc)
 
-def make_plot(source, ox, red, bgr, title):
+def make_plot(source, exc, ox, red, bgr, title):
 
     desc = source.data['label']
+    descexc = exc.data['label']
     homo = ColumnDataSource(data=dict(x=source.data['bandgap_corr'], y=source.data['homo_align_corr'], desc=desc))
     lumo = ColumnDataSource(data=dict(x=source.data['bandgap_corr'], y=source.data['lumo_align_corr'], desc=desc))
+    homo_exc = ColumnDataSource(data=dict(x=exc.data['bandgap_corr'], y=exc.data['homo_align_corr'], desc=descexc))
+    lumo_exc = ColumnDataSource(data=dict(x=exc.data['bandgap_corr'], y=exc.data['lumo_align_corr'], desc=descexc))
     hover = HoverTool(tooltips=[
         ("index", "$index"),
         ("(x,y)", "(@x,@y)"),
@@ -50,6 +54,8 @@ def make_plot(source, ox, red, bgr, title):
     p = figure(plot_width=800, plot_height=400, tools=[hover], x_axis_label='Adjusted Band Gap [eV]', y_axis_label='Adjusted IP/EA energies [eV]', title=title)
     p.circle('x','y', size=10, source=homo, color='red')
     p.circle('x','y', size=10, source=lumo, color='blue')
+    p.circle('x','y', size=10, source=homo_exc, color='red',alpha=0.05)
+    p.circle('x','y', size=10, source=lumo_exc, color='blue',alpha=0.05)
     redline = Span(location=ox,dimension='width',line_color='green',line_dash='dashed',line_width=2)
     oxline = Span(location=red,dimension='width',line_color='purple',line_dash='dashed',line_width=2)
     bgrline = Span(location=bgrs[bgr],dimension='height',line_color='black',line_dash='dashed',line_width=2)
@@ -125,33 +131,33 @@ def update_plot(attrname, old, new):
     else:
         ovlprval = ovlprs[ovlpr]
     
-    src = get_dataset(cofs, oxval, redval, bgrval, merval, mhrval, ovlprval)
+    src,exc = get_dataset(cofs, oxval, redval, bgrval, merval, mhrval, ovlprval)
     source.data.update(src.data)
 
     title = "Filtered CURATED COFs for photocatalytic " + redname + "/" + oxname
-    layout.children[0].children[1] = make_plot(source, oxval, redval, bgr, title) 
+    layout.children[0].children[1] = make_plot(source, exc, oxval, redval, bgr, title) 
     
 
-ox = 'OER'
-red = 'HER'
+ox = 'Oxygen evolution reaction'
+red = 'Hydrogen evolution reaction'
 bgr = 'Visible light'
 mer = '10'
 mhr = '10'
 ovlpr = '0.50'
 
 oxs = {
-    'OER': OER,
-    'TEOA': TEOA,
-    'TEA': TEA,
+    'Oxygen evolution reaction': OER,
+    'Triethanolamine as sacrificial donor': TEOA,
+    'Triethylamine as sacrificial donor': TEA,
     'Type a value': 0
 }
 
 reds = {
-    'HER': HER,
-    'N2_NH3': N2_NH3,
-    'CO2_CH4': CO2_CH4,
-    'CO2_CH3OH': CO2_CH3OH,
-    'CO2_HCOOH': CO2_HCOOH,
+    'Hydrogen evolution reaction': HER,
+    'Nitrogen reduction to amine': N2_NH3,
+    'CO2 reduction to methane': CO2_CH4,
+    'CO2 reduction to methanol': CO2_CH3OH,
+    'CO2 reduction to formic acid': CO2_HCOOH,
     'Type a value': 0
 }
 
@@ -199,7 +205,7 @@ mer_input = TextInput(visible=False)
 mhr_input = TextInput(visible=False)
 ovlpr_input = TextInput(visible=False)
 
-source = get_dataset(cofs, oxs[ox], reds[red], bgrs[bgr], mers[mer], mhrs[mhr], ovlprs[ovlpr])
+source,exc = get_dataset(cofs, oxs[ox], reds[red], bgrs[bgr], mers[mer], mhrs[mhr], ovlprs[ovlpr])
 title = "Filtered CURATED COFs for photocatalytic " + red + "/" + ox
 
 columns = [
@@ -223,6 +229,6 @@ for w in [ox_select,ox_input,red_select,red_input,bgr_select,bgr_input,mer_selec
 
 controls = column(ox_select,ox_input,red_select,red_input,bgr_select,bgr_input,mer_select,mer_input,mhr_select,mhr_input,ovlpr_select,ovlpr_input)
 
-layout = column(row(controls,make_plot(source, oxs[ox], reds[red], bgr, title)),row(data_table,column(text,button)))
+layout = column(row(controls,make_plot(source, exc, oxs[ox], reds[red], bgr, title)),row(data_table,column(text,button)))
 curdoc().add_root(layout)
 curdoc().title = "COFs for photocatalysis"
