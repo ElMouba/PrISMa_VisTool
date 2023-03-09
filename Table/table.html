@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Bokeh Plot</title>
+<style>
+      html, body {
+        box-sizing: border-box;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-3.0.3.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-3.0.3.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-3.0.3.min.js"></script>
+    <script type="text/javascript">
+        Bokeh.set_log_level("info");
+    </script>
+  </head>
+  <body>
+    <div id="5b3b1df7-52f6-48fb-a6cd-ad5f7596666b" data-root-id="p1027" style="display: contents;"></div>
+  
+    <script type="application/json" id="p1166">
+      {"547d0ac2-ceec-48fe-b198-c7eb837b0deb":{"version":"3.0.3","title":"Bokeh Application","defs":[],"roots":[{"type":"object","name":"DataTable","id":"p1027","attributes":{"source":{"type":"object","name":"ColumnDataSource","id":"p1001","attributes":{"selected":{"type":"object","name":"Selection","id":"p1003","attributes":{"indices":[],"line_indices":[]}},"selection_policy":{"type":"object","name":"UnionRenderers","id":"p1002"},"data":{"type":"map","entries":[["index",{"type":"ndarray","array":{"type":"bytes","data":"AAAAAAEAAAACAAAA"},"shape":[3],"dtype":"int32","order":"little"}],["SubjectID",{"type":"ndarray","array":["Subject_01","Subject_02","Subject_03"],"shape":[3],"dtype":"object","order":"little"}],["Result_1",{"type":"ndarray","array":["Positive","Negative","Negative"],"shape":[3],"dtype":"object","order":"little"}],["Result_2",{"type":"ndarray","array":["Negative","Negative","Negative"],"shape":[3],"dtype":"object","order":"little"}],["Result_3",{"type":"ndarray","array":["Negative","Invalid","Positive"],"shape":[3],"dtype":"object","order":"little"}],["Result_4",{"type":"ndarray","array":["Positive","Negative","Negative"],"shape":[3],"dtype":"object","order":"little"}],["Result_5",{"type":"ndarray","array":["Positive","Positive","Negative"],"shape":[3],"dtype":"object","order":"little"}]]}}},"view":{"type":"object","name":"CDSView","id":"p1031","attributes":{"filter":{"type":"object","name":"AllIndices","id":"p1032"}}},"columns":[{"type":"object","name":"TableColumn","id":"p1004","attributes":{"field":"SubjectID","title":"SubjectID","formatter":{"type":"object","name":"StringFormatter","id":"p1006"},"editor":{"type":"object","name":"StringEditor","id":"p1005"}}},{"type":"object","name":"TableColumn","id":"p1008","attributes":{"field":"Result_1","title":"Result 1","formatter":{"type":"object","name":"HTMLTemplateFormatter","id":"p1007","attributes":{"template":"\n        &lt;div style=\"background:&lt;%= \n            (function colorfromint(){\n                if(Result_1 == 'Positive'){\n                    return('white')}\n                else if (Result_1 == 'Negative')\n                    {return('white')}\n                else if (Result_1 == 'Invalid')\n                    {return('white')}\n                }()) %&gt;; \n            color: black\"&gt; \n        &lt;%= value %&gt;\n        &lt;/div&gt;\n    "}},"editor":{"type":"object","name":"StringEditor","id":"p1010"}}},{"type":"object","name":"TableColumn","id":"p1012","attributes":{"field":"Result_2","title":"Result 2","formatter":{"type":"object","name":"HTMLTemplateFormatter","id":"p1011","attributes":{"template":"\n        &lt;div style=\"background:&lt;%= \n            (function colorfromint(){\n                if(Result_2 == 'Positive'){\n                    return('white')}\n                else if (Result_2 == 'Negative')\n                    {return('white')}\n                else if (Result_2 == 'Invalid')\n                    {return('white')}\n                }()) %&gt;; \n            color: black\"&gt; \n        &lt;%= value %&gt;\n        &lt;/div&gt;\n    "}},"editor":{"type":"object","name":"StringEditor","id":"p1014"}}},{"type":"object","name":"TableColumn","id":"p1016","attributes":{"field":"Result_3","title":"Result 3","formatter":{"type":"object","name":"HTMLTemplateFormatter","id":"p1015","attributes":{"template":"\n        &lt;div style=\"background:&lt;%= \n            (function colorfromint(){\n                if(Result_3 == 'Positive'){\n                    return('white')}\n                else if (Result_3 == 'Negative')\n                    {return('white')}\n                else if (Result_3 == 'Invalid')\n                    {return('white')}\n                }()) %&gt;; \n            color: black\"&gt; \n        &lt;%= value %&gt;\n        &lt;/div&gt;\n    "}},"editor":{"type":"object","name":"StringEditor","id":"p1018"}}},{"type":"object","name":"TableColumn","id":"p1020","attributes":{"field":"Result_4","title":"Result 4","formatter":{"type":"object","name":"HTMLTemplateFormatter","id":"p1019","attributes":{"template":"\n        &lt;div style=\"background:&lt;%= \n            (function colorfromint(){\n                if(Result_4 == 'Positive'){\n                    return('white')}\n                else if (Result_4 == 'Negative')\n                    {return('white')}\n                else if (Result_4 == 'Invalid')\n                    {return('white')}\n                }()) %&gt;; \n            color: black\"&gt; \n        &lt;%= value %&gt;\n        &lt;/div&gt;\n    "}},"editor":{"type":"object","name":"StringEditor","id":"p1022"}}},{"type":"object","name":"TableColumn","id":"p1024","attributes":{"field":"Result_5","title":"Result 5","formatter":{"type":"object","name":"HTMLTemplateFormatter","id":"p1023","attributes":{"template":"\n        &lt;div style=\"background:&lt;%= \n            (function colorfromint(){\n                if(Result_5 == 'Positive'){\n                    return('white')}\n                else if (Result_5 == 'Negative')\n                    {return('white')}\n                else if (Result_5 == 'Invalid')\n                    {return('white')}\n                }()) %&gt;; \n            color: black\"&gt; \n        &lt;%= value %&gt;\n        &lt;/div&gt;\n    "}},"editor":{"type":"object","name":"StringEditor","id":"p1026"}}}]}}]}}
+    </script>
+    <script type="text/javascript">
+      (function() {
+        const fn = function() {
+          Bokeh.safely(function() {
+            (function(root) {
+              function embed_document(root) {
+              const docs_json = document.getElementById('p1166').textContent;
+              const render_items = [{"docid":"547d0ac2-ceec-48fe-b198-c7eb837b0deb","roots":{"p1027":"5b3b1df7-52f6-48fb-a6cd-ad5f7596666b"},"root_ids":["p1027"]}];
+              root.Bokeh.embed.embed_items(docs_json, render_items);
+              }
+              if (root.Bokeh !== undefined) {
+                embed_document(root);
+              } else {
+                let attempts = 0;
+                const timer = setInterval(function(root) {
+                  if (root.Bokeh !== undefined) {
+                    clearInterval(timer);
+                    embed_document(root);
+                  } else {
+                    attempts++;
+                    if (attempts > 100) {
+                      clearInterval(timer);
+                      console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+                    }
+                  }
+                }, 10, root)
+              }
+            })(window);
+          });
+        };
+        if (document.readyState != "loading") fn();
+        else document.addEventListener("DOMContentLoaded", fn);
+      })();
+    </script>
+  </body>
+</html>

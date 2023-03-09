@@ -1,0 +1,16 @@
+---
+Region:
+  United Kingdoms: GB
+  Switzerland: CH
+  China: CN
+  United States: US
+
+Source:
+  Natural Gas Power Plant: NGCC
+  Coal Fired Power Plant: Coal
+  Cement: Cement
+
+Process:
+  Temperature Swing Adsorption: TSA
+  Temperature/Vacuum Swing Adsorption (0.6): TVSA06
+  Temperature/Vacuum Swing Adsorption (0.2): TVSA02
