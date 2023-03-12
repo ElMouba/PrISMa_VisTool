@@ -83,7 +83,7 @@ def csv_Row_to_Column(df:pd.DataFrame):
     for i, serie in df.iterrows():
         for column, data in serie.items():
             if column in LIST_COLUMNS:
-                data = pd.eval(data)
+                data = list(pd.eval(data))
                 if len(data) > max_lenght:
                     max_lenght = len(data)
 
@@ -102,10 +102,11 @@ def csv_Row_to_Column(df:pd.DataFrame):
                 new_dict.update({column_name:final_list})
         
             elif column in LIST_COLUMNS:
-                data_list = pd.eval(data)
+                data_list = list(pd.eval(data))
                 if len(data_list) < max_lenght:
                     extra_none = max_lenght - len(data_list)
                     extra_list = extra_none * ['']
+                    print(type(data_list))
                     data_list = data_list + extra_list
                 new_dict.update({column_name: data_list})
 
