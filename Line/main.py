@@ -42,7 +42,7 @@ def get_dataset(region, source, process):
     return dataset
 
 # Use the user options to prepare the data for plotting
-def prep_data_plot(data_source, wlabel, xlabel, ylabel, zlabel, df_keys):
+def prep_data_plot(data_source, wlabel, xlabel, ylabel, zlabel, df_keys, top):
     # Get the full list of KPIs and it's length
     all_kpis = wlabel + xlabel + ylabel + zlabel
     KPIs = [df_keys["KPI"][df_keys["Label"]==i].iloc[0] for i in all_kpis]
@@ -60,13 +60,17 @@ def prep_data_plot(data_source, wlabel, xlabel, ylabel, zlabel, df_keys):
 
     # Arrange in order based on each KPI
     Rank = []
+    top_str = []
     for i in range(len_KPIs):
         Rank.append([])
+        top_str.append([])
         data_sort = data_source_pos.sort_values(KPIs[i], ascending=order_KPIs[i])
         data_sort.reset_index(drop=True, inplace=True)
         
         for j in MOFs:
             Rank[i].append(data_sort.index[data_sort["MOF"]==j][0]+1)
+            if data_sort.index[data_sort["MOF"]==j][0]+1 <= top:
+                top_str[i].append(j)
 
     # Prepare the data for plotting
     x = []
@@ -77,28 +81,37 @@ def prep_data_plot(data_source, wlabel, xlabel, ylabel, zlabel, df_keys):
         for j in range(len_KPIs):
             y[i].append(Rank[j][i])
     
-    return {"MOF":MOFs, "X":x, "Y":y}
+    return {"MOF":MOFs, "X":x, "Y":y}, top_str 
 
 # A standard script for bokeh plotting
-def make_plot(data_source, wlabel, xlabel, ylabel, zlabel, material, df_keys):
+def make_plot(data_source, wlabel, xlabel, ylabel, zlabel, material, df_keys, kpi, top):
     # source of the data
-    source_data = prep_data_plot(data_source, wlabel, xlabel, ylabel, zlabel, df_keys)
+    source_data = prep_data_plot(data_source, wlabel, xlabel, ylabel, zlabel, df_keys, top)[0]
+    structures = prep_data_plot(data_source, wlabel, xlabel, ylabel, zlabel, df_keys, top)[1]
+
     source = bmd.ColumnDataSource(data=source_data)
     hover = bmd.HoverTool(tooltips= [("MOF", "@MOF")])
 
     label_tot = wlabel + xlabel + ylabel + zlabel
     label_full = [i + " (" + df_keys["Unit"][df_keys["Label"]==i].iloc[0] + ")" for i in label_tot]
     xticker = [i+1 for i in range(len(label_tot))]
-
+    
     p = figure(height=HEIGHT, width=WIDTH, toolbar_location='above',
                tools=['pan', 'wheel_zoom', 'box_zoom', 'save', 'reset', hover], active_drag='box_zoom')
+
+    if kpi != "None":
+        ind = label_tot.index(kpi)
+        structures_top = structures[ind]
+        for i in range(len(list(source.data["MOF"]))):
+            if list(source.data["MOF"])[i] in structures_top:
+                p.line(source.data["X"][i], source.data["Y"][i], name=list(source.data["MOF"])[i], color="red", line_width=2, alpha=1)
 
     x_val = []
     y_val = []
     label_val = []
     for i in range(len(list(source.data["MOF"]))):
         if list(source.data["MOF"])[i] in material:
-            p.line(source.data["X"][i], source.data["Y"][i], name=list(source.data["MOF"])[i], color="red", line_width=2, alpha=1)
+            p.line(source.data["X"][i], source.data["Y"][i], name=list(source.data["MOF"])[i], color="blue", line_width=2, alpha=1)
             x_val.append(1)
             y_val.append(source.data["Y"][i][0])
             label_val.append(list(source.data["MOF"])[i])
@@ -110,10 +123,10 @@ def make_plot(data_source, wlabel, xlabel, ylabel, zlabel, material, df_keys):
     p.xaxis.major_label_text_font_size = FONT_SIZE_AXIS
     p.yaxis.major_label_text_font_size = FONT_SIZE_AXIS
     p.xaxis.major_label_orientation = LABEL_OR
-    p.multi_line("X", "Y", source=source, color = "gray", line_width=DATA_SIZE, alpha=0.2)
+    p.multi_line("X", "Y", source=source, color = "gray", line_width=DATA_SIZE, alpha=0.05)
     p.y_range.flipped = True
     source_label = ColumnDataSource(data=dict(xval=x_val,yval=y_val,labelval=label_val))
-    labels = LabelSet(x='xval', y= 'yval', x_offset=-20, text='labelval', source=source_label, text_font_size="7pt", text_color="blue")
+    labels = LabelSet(x='xval', y= 'yval', x_offset=-20, text='labelval', source=source_label, text_font_size="7pt", text_color="black")
     p.add_layout(labels)
 
     return p
@@ -140,11 +153,12 @@ def update_plot(attrname, old, new):
     regionval = regions[region]
     sourceval = sources[source]
     processval = processes[process]
-    
+    kpi_select.options = ["None"] + wlabelval + xlabelval + ylabelval + zlabelval
+    kpival = kpi_select.value
     src = get_dataset(regionval, sourceval, processval)
     plot_data.update(src)
 
-    layout.children[0].children[1] = make_plot(plot_data, wlabelval, xlabelval, ylabelval, zlabelval, materialval, df_keys) 
+    layout.children[0].children[1] = make_plot(plot_data, wlabelval, xlabelval, ylabelval, zlabelval, materialval, df_keys, kpival, 10) 
 
 ## Initialize the dictionaries
 regions = {i:i for i in list_regions}
@@ -156,14 +170,16 @@ ylabels = {label_keys[i]:list_keys[i] for i in range(21,30)}
 zlabels = {label_keys[i]:list_keys[i] for i in range(30, len(label_keys))}
 
 region0 = 'United Kingdoms'
-source0 = 'Natural Gas Power Plant'
+source0 = 'Cement'
 process0 = 'Temperature Swing Adsorption'
 wlabel0 = ['IAST Selectivity']
-xlabel0 = ['Purity']
-ylabel0 = ['CAPEX']
-zlabel0 = ['Climate Change']
+xlabel0 = ['Purity', 'Productivity']
+ylabel0 = ['CAC']
+zlabel0 = ['Climate Change', 'Material Resources: Metals/Minerals']
 materials = {i:i for i in list(get_dataset(region0, source0, process0)["MOF"])}
 material0 = []
+kpis = ["None"] + wlabel0 + xlabel0 + ylabel0 + zlabel0
+kpi0 = "None"
 
 ## Initialize the select column
 region_select = Select(title='Region', options=list(regions.keys()), value=region0, width=WWIDTH)
@@ -174,11 +190,12 @@ xlabel_select = MultiChoice(title="Process KPIs", options=list(xlabels.keys()), 
 ylabel_select = MultiChoice(title="Techno-Economic KPIs", options=list(ylabels.keys()), value=ylabel0, width=WWIDTH)
 zlabel_select = MultiChoice(title="Life Cycle Assessment KPIs", options=list(zlabels.keys()), value=zlabel0, width=WWIDTH)
 material_select = MultiChoice(title='Structure(s) of Interest', options=list(materials.keys()), value=material0, width=WWIDTH)
+kpi_select = Select(title='KPI of Interest', options=kpis, value=kpi0, width=WWIDTH)
 
 ## Get the initial plot data
 plot_data = get_dataset(regions[region0], sources[source0], processes[process0])
 
-for w in [region_select,source_select,process_select,wlabel_select,xlabel_select,ylabel_select,zlabel_select,material_select]:
+for w in [region_select,source_select,process_select,wlabel_select,xlabel_select,ylabel_select,zlabel_select,material_select,kpi_select]:
     w.on_change('value', update_plot)
 
 controls = column(region_select,source_select,process_select,wlabel_select,xlabel_select,ylabel_select,zlabel_select)
@@ -194,6 +211,6 @@ zlabel_select.js_on_change('value', CustomJS(code="""console.log('multi_choice: 
 material_select.js_on_change('value', CustomJS(code="""console.log('multi_choice: value=' + this.value, this.toString())"""))
 
 ## Generate the page
-layout = column(row(controls, column(make_plot(plot_data, wlabel0, xlabel0, ylabel0, zlabel0, material0, df_keys)), material_select))
+layout = column(row(controls, column(make_plot(plot_data, wlabel0, xlabel0, ylabel0, zlabel0, material0, df_keys, kpi0, 10)), column(material_select,kpi_select)))
 curdoc().add_root(layout)
 curdoc().title = "KPI-Line"

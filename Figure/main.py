@@ -7,7 +7,7 @@ import yaml
 
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Title, OpenURL, TapTool, Select, Div
+from bokeh.models import Title, OpenURL, TapTool, Select, TextInput
 from bokeh.palettes import Turbo256
 from bokeh.plotting import figure
 from config_fig import *
@@ -45,9 +45,9 @@ def get_dataset(region, source, process):
     return dataset
 
 # A standard script for bokeh plotting
-def make_plot(dataset, xlabel, ylabel, zlabel, df_keys, xlog, ylog, zlog, material):
+def make_plot(dataset, xlabel, ylabel, zlabel, df_keys, xlog, ylog, zlog, material, xref, yref):
     dataset_pos = dataset[(dataset[xlabel] > 0) & (dataset[ylabel] > 0) & (dataset[zlabel] > 0)]
-    material_select.options = list(dataset_pos["MOF"])
+    material_select.options = ["None"] + list(dataset_pos["MOF"])
     
     if zlog == "log":
         dataset_pos[zlabel] = np.log(dataset_pos[zlabel])
@@ -80,6 +80,12 @@ def make_plot(dataset, xlabel, ylabel, zlabel, df_keys, xlog, ylog, zlog, materi
         source2 = bmd.ColumnDataSource(data=dataset2)
         p.circle(xlabel, ylabel, size=DATA_SIZE, source=source, fill_color={'field': color_by, 'transform': cmap}, alpha=0.1)
         p.diamond(xlabel, ylabel, size=DATA_SIZE, source=source2, alpha=1.0, line_color="black", fill_color="red")
+
+    if xref:
+        p.line([xref, xref], [min(dataset_pos[ylabel]), max(dataset_pos[ylabel])], dash="dashed", color="black", line_width=2.0, alpha=1.0)
+
+    if yref:
+        p.line([min(dataset_pos[xlabel]), max(dataset_pos[xlabel])], [yref, yref], dash="dashed", color="black", line_width=2.0, alpha=1.0)
 
     cbar = bmd.ColorBar(color_mapper=cmap, location=(0, 0), major_label_text_font_size="10pt")
     p.add_layout(cbar, 'right')
@@ -141,6 +147,8 @@ def update_plot(attrname, old, new):
     ylog = ylog_select.value
     zlog = zlog_select.value
     material = material_select.value
+    xrefval = xref_input.value
+    yrefval = yref_input.value
 
     regionval = regions[region]
     sourceval = sources[source]
@@ -152,7 +160,7 @@ def update_plot(attrname, old, new):
     src = get_dataset(regionval, sourceval, processval)
     plot_data.update(src)
     
-    layout.children[0].children[1] = make_plot(plot_data, xlabelval, ylabelval, zlabelval, df_keys, xlog, ylog, zlog, material)
+    layout.children[0].children[1] = make_plot(plot_data, xlabelval, ylabelval, zlabelval, df_keys, xlog, ylog, zlog, material, xrefval, yrefval)
     
 ## Initialize the dictionaries
 regions = {i:i for i in list_regions}
@@ -166,16 +174,16 @@ ylabels = {label_keys[i]:list_keys[i] for i in range(len(list_keys))}
 zlabels = {label_keys[i]:list_keys[i] for i in range(len(list_keys))}
 
 region0 = 'United Kingdoms'
-source0 = 'Natural Gas Power Plant'
+source0 = 'Cement'
 process0 = 'Temperature Swing Adsorption'
 xlayer0 = 'Process'
 ylayer0 = 'Techno-Economics'
-zlayer0 = 'Life Cycle Assessment'
-xlabel0 = 'Working Capacity'
-ylabel0 = 'CAPEX'
-zlabel0 = 'Climate Change'
+zlayer0 = 'Process'
+xlabel0 = 'Recovery'
+ylabel0 = 'CAC'
+zlabel0 = 'Specific Heat'
 xlog0 = 'linear'
-ylog0 = 'linear'
+ylog0 = 'log'
 zlog0 = 'linear'
 materials = {i:i for i in list(get_dataset(regions[region0], sources[source0], processes[process0])["MOF"])}
 material0 = "None"
@@ -189,21 +197,23 @@ xlabel_select = Select(title="Label (x-axis)", options=list(xlabels.keys())[12:2
 ylayer_select = Select(title='Platform Layer (y-axis)', options=list(ylayers.keys()), value=ylayer0, width=WWIDTH)
 ylabel_select = Select(title="Label (y-axis)", options=list(ylabels.keys())[21:30], value=ylabel0, width=WWIDTH)
 zlayer_select = Select(title='Platform Layer (z-axis)', options=list(zlayers.keys()), value=zlayer0, width=WWIDTH)
-zlabel_select = Select(title="Label (z-axis)", options=list(zlabels.keys())[30:], value=zlabel0, width=WWIDTH)
+zlabel_select = Select(title="Label (z-axis)", options=list(zlabels.keys())[12:21], value=zlabel0, width=WWIDTH)
 xlog_select = Select(title="Scale (x-axis)", options=["linear", "log"], value=xlog0, width=WWIDTH)
 ylog_select = Select(title="Scale (y-axis)", options=["linear", "log"], value=ylog0, width=WWIDTH)
 zlog_select = Select(title="Scale (z-axis)", options=["linear", "log"], value=zlog0, width=WWIDTH)
 material_select = Select(title="Material of Interest", options=["None"] + list(materials.keys()), value=material0, width=WWIDTH)
+xref_input = TextInput(value="", title="Reference (x-axis)", width=WWIDTH)
+yref_input = TextInput(value="", title="Reference (y-axis)", width=WWIDTH)
 
 ## Get the initial plot data
 plot_data = get_dataset(regions[region0], sources[source0], processes[process0])
 
 #selection to csv Button
-for w in [region_select,source_select,process_select,xlayer_select,xlabel_select,ylayer_select,ylabel_select,zlayer_select,zlabel_select,xlog_select,ylog_select,zlog_select,material_select]:
+for w in [region_select,source_select,process_select,xlayer_select,xlabel_select,ylayer_select,ylabel_select,zlayer_select,zlabel_select,xlog_select,ylog_select,zlog_select,material_select,xref_input,yref_input]:
     w.on_change('value', update_plot)
 
 controls1 = column(region_select,source_select,process_select,xlayer_select,xlabel_select,ylayer_select,ylabel_select,zlayer_select,zlabel_select)
-controls2 = column(xlog_select,ylog_select,zlog_select,material_select)
+controls2 = column(xlog_select,ylog_select,zlog_select,material_select,xref_input,yref_input)
 
 ## Dynamic changes to the layout
 region_select.on_change('value', update_layout)
@@ -216,6 +226,6 @@ zlayer_select.on_change('value', update_layout)
 zlabel_select.on_change('value', update_layout)
 
 ## Generate the page
-layout = column(row(controls1, make_plot(plot_data, xlabels[xlabel0], ylabels[ylabel0], zlabels[zlabel0], df_keys, xlog0, ylog0, zlog0, material0), controls2))
+layout = column(row(controls1, make_plot(plot_data, xlabels[xlabel0], ylabels[ylabel0], zlabels[zlabel0], df_keys, xlog0, ylog0, zlog0, material0, "", ""), controls2))
 curdoc().add_root(layout)
 curdoc().title = "KPI-3D"

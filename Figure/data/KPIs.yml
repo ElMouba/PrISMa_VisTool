@@ -46,7 +46,7 @@
   unit: "-"
   order: False
 
-- kpi: t_sel_co2/n2'
+- kpi: t_sel_co2/n2
   type: float
   label: "Ternary Selectivity CO\u2082/N\u2082"
   unit: "-"
