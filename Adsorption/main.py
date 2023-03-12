@@ -199,7 +199,7 @@ download_button = bmd.Button(label="Download Properties", button_type='primary',
 download_button.js_on_click(bmd.CustomJS(code=open(join(dirname(__file__), "static/js/download_csv.js")).read()))
 
 ## Get the initial plot data
-table_data, plot_data = get_dataset(structures[structure0], molecules[molecule0])
+table_data, plot_data = get_dataset(structures[get_name_from_url()], molecules[molecule0])
 
 ## Make the table
 columns = [TableColumn(field='henry',title='Henry Regime Properties',formatter=StringFormatter(text_align="center"))]
@@ -209,8 +209,6 @@ for w in [structure_select,molecule_select,ylabel_select]:
     w.on_change('value', update_plot)
 
 controls = column(structure_select,molecule_select,ylabel_select,download_button)
-
-args = curdoc().session_context.request.arguments
 
 ## Generate the page
 layout = column(row(controls, column(make_plot(plot_data,ylabels[ylabel0],df_keys), Spacer(margin=(0, 0, 30, 0)), row(Spacer(margin=(0, 300, 0, 0)), table))))

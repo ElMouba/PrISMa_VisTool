@@ -385,7 +385,8 @@ def go_to_prop():
 
 btn_properties = bmd.Button(label='Adsorption Properties', button_type='primary', tags = ['Nothing Selected'], disabled = True, width=410)
 btn_properties.css_classes = ['custom_button_1']
-btn_properties.js_on_click(bmd.CustomJS(args=dict(name="TESTING"), code = table_direct))
+#btn_properties.js_on_click(bmd.CustomJS(args=dict(name="TESTING"), code = table_direct))
+btn_properties.js_on_click(bmd.CustomJS(code=table_direct))
 
 btn_properties.on_click(go_to_prop)
 #Document Layout
