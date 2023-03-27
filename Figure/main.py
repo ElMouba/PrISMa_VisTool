@@ -91,7 +91,7 @@ def make_plot(dataset, xlabel, ylabel, zlabel, df_keys, xlog, ylog, zlog, materi
     p.add_layout(cbar, 'right')
     p.add_layout(Title(text=zax, align="center", text_font_size="13pt", text_font_style="normal"), "right")
     
-    url = "http://localhost:5006/Table?name=@MOF"
+    url = "https://prisma.matcloud.xyz/Table?name=@MOF"
     taptool = p.select(type=TapTool)
     taptool.callback = OpenURL(url=url)
     
