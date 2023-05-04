@@ -3,5 +3,7 @@ WWIDTH = 300
 
 REQUIRED_FIELDS = ['FirstName', 'LastName', 'Email', 'Consent', 'CifName']
 
-SENDER_EMAIL = 'vanherckjoren@gmail.com'
-SENDER_PASSWORD = 'abc' #Fill in
+SENDER_EMAIL = 'prismastructures@gmail.com'
+SENDER_PASSWORD = 'ctjadksgrsjkabvf'
+
+ADMINS = [SENDER_EMAIL, 'joren.vanherck@epfl.ch']

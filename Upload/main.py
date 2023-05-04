@@ -272,7 +272,8 @@ def submit_form():
             submitbutton.button_type = 'danger'
             submitbutton.label = 'Please fill in the required fields'
             return False
-    sendConfirmationEmail(form, admins=['vanherckjoren@gmail.com'])
+        
+    sendConfirmationEmail(form, admins=ADMINS)
     print('Email succesfully send!')
 
     submitbutton.button_type = 'success'
