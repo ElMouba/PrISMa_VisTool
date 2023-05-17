@@ -97,46 +97,42 @@ def make_plot(dataset, xlabel, ylabel, zlabel, df_keys, xlog, ylog, zlog, materi
     
     return p
 
-# Update the layout given the different options 
-def update_layout(attr, old, new):
+# Update the layout given the different options
+def update_xaxis(attr, old, new):
+    update_axis(xlayer_select, xlabel_select)
+    
+def update_yaxis(attr, old, new):
+    update_axis(ylayer_select, ylabel_select)
+
+def update_zaxis(attr, old, new):
+    update_axis(zlayer_select, zlabel_select)
+
+def update_axis(layer_select, label_select):
+    layer = layer_select.value
+    if layer == "Material":
+        label_select.options = list(xlabels.keys())[:12]
+        label_select.value = list(xlabels.keys())[0]
+    elif layer == "Process":
+        label_select.options = list(xlabels.keys())[12:21]
+        label_select.value = list(xlabels.keys())[12]
+    elif layer == "Techno-Economics":       
+        label_select.options = list(xlabels.keys())[21:30]
+        xlabel_select.value = list(xlabels.keys())[21]
+    elif layer == "Life Cycle Assessment":
+        label_select.options = list(xlabels.keys())[30:]
+        label_select.value = list(xlabels.keys())[30]
+
+
+def update_region(attr, old, new):
     region = region_select.value
     if region == "Switzerland":
         source_select.options = [list(sources.keys())[0], list(sources.keys())[2]]
     else:
         source_select.options = list(sources.keys())
-
-    xlayer = xlayer_select.value
-    if xlayer == "Material":
-        xlabel_select.options = list(xlabels.keys())[:12]
-    elif xlayer == "Process":
-        xlabel_select.options = list(xlabels.keys())[12:21]
-    elif xlayer == "Techno-Economics":
-        xlabel_select.options = list(xlabels.keys())[21:30]
-    elif xlayer == "Life Cycle Assessment":
-        xlabel_select.options = list(xlabels.keys())[30:]
-
-    ylayer = ylayer_select.value
-    if ylayer == "Material":
-        ylabel_select.options = list(ylabels.keys())[:12]
-    elif ylayer == "Process":
-        ylabel_select.options = list(ylabels.keys())[12:21]
-    elif ylayer == "Techno-Economics":
-        ylabel_select.options = list(ylabels.keys())[21:30]
-    elif ylayer == "Life Cycle Assessment":
-        ylabel_select.options = list(ylabels.keys())[30:]
-
-    zlayer = zlayer_select.value
-    if zlayer == "Material":
-        zlabel_select.options = list(zlabels.keys())[:12]
-    elif zlayer == "Process":
-        zlabel_select.options = list(zlabels.keys())[12:21]
-    elif zlayer == "Techno-Economics":
-        zlabel_select.options = list(zlabels.keys())[21:30]
-    elif zlayer == "Life Cycle Assessment":
-        zlabel_select.options = list(zlabels.keys())[30:]
-
+         
 # Update the plot given the different options
 def update_plot(attrname, old, new):
+    print(attrname, old, new)
     region = region_select.value
     source = source_select.value
     process = process_select.value
@@ -209,21 +205,21 @@ yref_input = TextInput(value="", title="Reference (y-axis)", width=WWIDTH)
 plot_data = get_dataset(regions[region0], sources[source0], processes[process0])
 
 #selection to csv Button
-for w in [region_select,source_select,process_select,xlayer_select,xlabel_select,ylayer_select,ylabel_select,zlayer_select,zlabel_select,xlog_select,ylog_select,zlog_select,material_select,xref_input,yref_input]:
+for w in [region_select,source_select,process_select,xlabel_select,ylabel_select,zlabel_select,xlog_select,ylog_select,zlog_select,material_select,xref_input,yref_input]:
+    print(w)
     w.on_change('value', update_plot)
 
 controls1 = column(region_select,source_select,process_select,xlayer_select,xlabel_select,ylayer_select,ylabel_select,zlayer_select,zlabel_select)
 controls2 = column(xlog_select,ylog_select,zlog_select,material_select,xref_input,yref_input)
 
 ## Dynamic changes to the layout
-region_select.on_change('value', update_layout)
-source_select.on_change('value', update_layout)
-xlayer_select.on_change('value', update_layout)
-xlabel_select.on_change('value', update_layout)
-ylayer_select.on_change('value', update_layout)
-ylabel_select.on_change('value', update_layout)
-zlayer_select.on_change('value', update_layout)
-zlabel_select.on_change('value', update_layout)
+region_select.on_change('value', update_region)
+source_select.on_change('value', update_region)
+xlayer_select.on_change('value', update_xaxis)
+ylayer_select.on_change('value', update_yaxis)
+zlayer_select.on_change('value', update_zaxis)
+
+
 
 ## Generate the page
 layout = column(row(controls1, make_plot(plot_data, xlabels[xlabel0], ylabels[ylabel0], zlabels[zlabel0], df_keys, xlog0, ylog0, zlog0, material0, "", ""), controls2))
