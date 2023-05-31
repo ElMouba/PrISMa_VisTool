@@ -6,33 +6,30 @@ import os
 
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Switch
 from config_tab import *
 from os.path import dirname, join
 from .helpers import importing_data, clean_dataframe
 
-
+# js scripts
 dowload_csv = open(join(dirname(__file__), "static/js/download_csv.js")).read()
 download_cif_js = open(join(dirname(__file__), 'static', 'js', 'download_cif.js')).read()
 properties_direct = open(join(dirname(__file__), 'static', 'js', 'properties_direct.js')).read()
 table_direct = open(join(dirname(__file__), 'static', 'js', 'table_direct.js')).read()
 
-#Importing and Cleaning Data
+# Importing and Cleaning Data
 df = importing_data(DATA_FILE, verbose=VERBOSE)
 DF_LEN = len(df)
 df = clean_dataframe(df, verbose=VERBOSE)
 
 def get_name_from_url(df:pd.DataFrame)-> str:
     """Get structure name from URL parameter. 
-    
     Returns:
     --------
     name: str
-        name of the COF extracted from the URL 
-        If no 'Label' parameter (in bytes), returns a dummy COF (linker91_CH_linker92_N_clh_relaxed)
+        name of the MOF extracted from the URL 
+        If no 'Label' parameter, returns a dummy MOF (CALF20)
     """
     freeze = False
-
     args = curdoc().session_context.request.arguments
 
     try:
@@ -40,16 +37,13 @@ def get_name_from_url(df:pd.DataFrame)-> str:
         if isinstance(name, bytes):
             name = name.decode()
             freeze = True
-
     except (TypeError, KeyError) as e:
-        print(e)
         freeze = False
         name = 'CALF20'
 
     entry = df.loc[df['Label'] == name]
     index = entry.index
     df_ = df.drop(index)
-    
     new_df = pd.concat([entry, df_], ignore_index = True)
 
     return new_df, freeze
@@ -90,7 +84,6 @@ def create_table(dataframe:pd.DataFrame) -> bmd.DataTable:
     for column in HEADER_ORDER:
 
         if column not in dataframe.columns:
-            print("Could not find '{}' column".format(column))
             continue
         
         if column == 'Label':
@@ -126,10 +119,10 @@ def create_table(dataframe:pd.DataFrame) -> bmd.DataTable:
 
     return data_table
 
-#create inital datatable
+# Create inital datatable
 datatable = create_table(df)
 
-#Compare Button
+# Compare Button
 def change_selection(verbose = VERBOSE):
     """Compare button handler\n\n
     - Adding: extract current selection, moves to top of dataframe and freeze number of rows
@@ -138,23 +131,13 @@ def change_selection(verbose = VERBOSE):
     - updates comparison info text
     """
     global df, ignore_index_change
-    #print('\nIN change_selection...')
-    #print('current df:\n{}'.format(df.head(5)['Label']))
     
     selected_ix = datatable.source.selected.indices
-    selected_ix_name = [datatable.source.data['Label'][i] for i in selected_ix]
-    selected_ix_name_wrong = df.loc[selected_ix, 'Label']
-    #print('CLICKED ON {} (index: {})'.format(selected_ix_name,selected_ix))
-    #print(selected_ix_name, selected_ix_name_wrong)
-    #print('Selected_ix: {} - {}'.format(selected_ix, selected_ix_name))
 
     deleting_counter = 0
     all_selected_rows= selected_ix
-    #print('datatable.frozen_rows : {} / is number?'.format(datatable.frozen_rows))
     if type(datatable.frozen_rows) == type(10):
-        #print('\tYes')
         frozen_ix = list(range(datatable.frozen_rows))
-        #print('\tFrozen_ix: {}'.format(frozen_ix))
         all_selected_rows = frozen_ix + selected_ix       
         for index in selected_ix:
             if index<datatable.frozen_rows:
@@ -162,17 +145,9 @@ def change_selection(verbose = VERBOSE):
                 deleting_counter += 1
     else:
         pass
-        #print('\tNO')
-    #print('All selected rows: {}'.format(all_selected_rows))
-    old_df = pd.DataFrame(datatable.source.data)
-    #print(old_df.head(5))
     
-    #print(type(datatable.source.data))
     selected_df = df.loc[all_selected_rows]
-    selected_df2 = old_df.loc[all_selected_rows]
 
-    #print(selected_df)
-    #print(selected_df2)
     df_dropped = df.drop(df.index[all_selected_rows])
 
     df = pd.concat([selected_df, df_dropped], ignore_index=True)
@@ -196,11 +171,11 @@ def change_selection(verbose = VERBOSE):
     button_copy.label="Copy Selection ({}) to Clipboard".format(datatable.frozen_rows)
     button_selection_csv.label = "Download Selection ({})".format(datatable.frozen_rows)
 
-    #sanity check 
+    # Sanity check 
     if len(df) != DF_LEN:
         raise ValueError("LENGHT OF DF HAS CHANGED!")
 
-#Sorting Switch
+# Sorting Switch
 def switch_handler(attr, old, new):
     '''if activated, frozen rows to 0 and sorting via column allowed'''
 
@@ -208,10 +183,8 @@ def switch_handler(attr, old, new):
         data_table.sortable = True
         data_table.frozen_rows = 0
         
-
     if new == False:
         data_table.sortable = False
-
 
 sorting_text = bmd.Div(text = 'Allow sorting')
 sorting_switch = bmd.Switch(active=True)
@@ -224,14 +197,11 @@ def selection_handler_doubleclick(attr, old, new):
     Multiple selection not possible
     TO DO: Clean function
     '''
-
-    print('\n\nIN SELECTION_HANDLER_DOUBLECLICK')
-    print('\tclicked on {}'.format((old,new)))
     try:
         global previous_selected_index
         if len(source.selected.indices) > 2:
             source.selected.indices = [new[-1],len(df)-1]
-            return         # declare it is a global variable
+            return         # Declare it as global variable
         selected = source.selected.indices
         if(len(selected)==1):
             selected_index= selected[0]
@@ -243,17 +213,13 @@ def selection_handler_doubleclick(attr, old, new):
         previous_selected_index  = [selected_index] 
         source.selected.indices = [selected_index, len(df)-1]
     except Exception as e:
-        print(e)
         source.selected.indices = [selected_index, len(df)-1]
-    
-    #sort_selection('value', None, sort_selection_select.value)
 
 previous_selected_index = [0,0]
 ignore_index_change = False
 def selection_handler_doubleclick2(attr, old, new):
     global previous_selected_index, ignore_index_change
     if ignore_index_change:
-        #print('Just changed. not happens')
         ignore_index_change = False
         return
     
@@ -262,24 +228,16 @@ def selection_handler_doubleclick2(attr, old, new):
         return
 
     first_selected = new[0]
-    #print('\n\nIN SELECTION_HANDLER_DOUBLECLICK')
-    #print('new: {}'.format(new))
-    #print('\tclicked on {}'.format(new))
-    #print('Previous click was on: {}'.format(previous_selected_index))
 
     if first_selected == previous_selected_index[0]:
-        #print('cliced on the same!')
         datatable.source.selected.indices = [first_selected]
-        #print("DO SOMETHING with selection {}".format(first_selected))
         change_selection()
     else:
         datatable.source.selected.indices = [first_selected, len(df)-1]
         previous_selected_index = [first_selected, len(df)-1]
 
-
 def selection_handler_cif(attr, old, new):
     entry_name = datatable.source.data['Label'][new[0]]
-    #btn_download_cif.label = 'Download CIF file \n({})'.format(entry_name)
     name_cif_file = '{}.cif'.format(entry_name)
     cif_directory = os.path.join(CIF_DIR, name_cif_file)
     if os.path.exists(cif_directory):
@@ -292,38 +250,33 @@ def selection_handler_cif(attr, old, new):
         btn_download_cif.disabled = True
 
     btn_properties.disabled = False
-    #btn_properties.label = 'Go to property page of {}'.format(entry_name)
     btn_download_cif.label = "Download CIF ({})".format(entry_name)
     btn_properties.tags = [entry_name]
 
 source.selected.on_change('indices', selection_handler_doubleclick2)
 source.selected.on_change('indices', selection_handler_cif)
 
-#Copy button
+# Copy button
 def copy_handler():
     '''Copies current selection to clipboard (data copy in table is not possible in bokeh)'''
     copied_df = df.head(data_table.frozen_rows)
     try:
         copied_df.to_clipboard()
-        print('Current selection of {} entries copied to clipboard'.format(data_table.frozen_rows))
     except:
         print('Could not copy data to clipboard (see https://pyperclip.readthedocs.io/en/latest/#not-implemented-error)...')
-
+        
 button_copy = bmd.Button(label="Copy Selection to Clipboard", disabled = True, width=WWIDTH)
 button_copy.on_click(copy_handler)
 
-#selection to csv Button
+# Selection to csv Button
 button_selection_csv = bmd.Button(label = "Download Selection", disabled = True, tags = [0], width=WWIDTH)
-button_selection_csv.js_on_click(bmd.CustomJS(args = dict(source = datatable.source,
-                                                                    csv_file_name = 'SelectedMOFs'), 
-                                                code = dowload_csv))
-#to csv file button
+button_selection_csv.js_on_click(bmd.CustomJS(args = dict(source = datatable.source, csv_file_name = 'SelectedMOFs'),
+                                              code = dowload_csv))
+# To csv file button
 botton_csv = bmd.Button(label="Download all data", tags = [DF_LEN], width=WWIDTH)
-botton_csv.js_on_click(bmd.CustomJS(args = dict(source = datatable.source, 
-                                                        csv_file_name = 'AllMOFdata'), 
-                                                code = dowload_csv))
+botton_csv.js_on_click(bmd.CustomJS(args = dict(source = datatable.source, csv_file_name = 'AllMOFdata'), code = dowload_csv))
 
-#frozen row on change handler
+# Frozen row on change handler
 def frozen_rows_handler(attr, old, new):
     button_selection_csv.label = "Download Selection"
     button_copy.label = "Copy Selection to Clipboard"
@@ -333,11 +286,9 @@ def frozen_rows_handler(attr, old, new):
         button_copy.disabled = True
         button_selection_csv.disabled = True
 
-
 datatable.on_change('frozen_rows', frozen_rows_handler)
 
-
-#Search MOF input
+# Search MOF input
 def search_handler(attr, old, new):
     '''Changes to index of MOF upon change'''   
     global ignore_index_change
@@ -346,16 +297,14 @@ def search_handler(attr, old, new):
 
     ignore_index_change = True
     datatable.source.selected.indices = [index]
-    
-    print('Search_handler: {}'.format(datatable.source.selected.indices))
 
     change_selection()
     
 search_function = bmd.AutocompleteInput(title = 'Search for MOF: ', completions = list(df['Label']), width=WWIDTH)
 search_function.on_change('value', search_handler)
 
-#sort selection
-#sorting not possible on frozen row https://github.com/bokeh/bokeh/issues/3564
+# Sort selection
+# Sorting not possible on frozen row https://github.com/bokeh/bokeh/issues/3564
 def sort_selection(attr, old, new):
     selection = datatable.frozen_rows
     df_selection = df.head(selection)
@@ -370,32 +319,24 @@ def sort_selection(attr, old, new):
     sorted_dataframe = pd.concat([df_selection, df_rest], ignore_index=False)
     datatable.source.data = sorted_dataframe
 
-
 sort_selection_select = bmd.Select(title = 'Sort selection by:', value = 'Label', options = SORTING_OPTIONS, width=WWIDTH)
 sort_selection_select.on_change('value', sort_selection)
 
-#Download cif
-btn_download_cif = bmd.Button(label='Download CIF', button_type='primary', tags = ['Nothing Selected', 'None.cif'], disabled = True, width=410)
+# Download cif
+btn_download_cif = bmd.Button(label='Download CIF', button_type='primary', tags = ['Nothing Selected', 'None.cif'],
+                              disabled = True, width=410)
 btn_download_cif.css_classes = ['custom_button_1']
 btn_download_cif.js_on_click(bmd.CustomJS(code=download_cif_js))
 
-#Go to properties
-def go_to_prop():
-    print('Directed to properties')
-
-btn_properties = bmd.Button(label='Adsorption Properties', button_type='primary', tags = ['Nothing Selected'], disabled = True, width=410)
+# Go to properties
+btn_properties = bmd.Button(label='Adsorption Properties', button_type='primary', tags = ['Nothing Selected'],
+                            disabled = True, width=410)
 btn_properties.css_classes = ['custom_button_1']
-#btn_properties.js_on_click(bmd.CustomJS(args=dict(name="TESTING"), code = table_direct))
 btn_properties.js_on_click(bmd.CustomJS(code=table_direct))
 
-btn_properties.on_click(go_to_prop)
-#Document Layout
+# Document Layout
 curdoc().title = 'Database'
-
-
-
 top_row = row(search_function, sort_selection_select)
 sorting_option = row(sorting_text, sorting_switch)
-#comparing_option = row(button, button_text)
 selection_options = row(button_copy, button_selection_csv)
 curdoc().add_root(column(top_row, datatable, sorting_option, selection_options, botton_csv, btn_download_cif, btn_properties))

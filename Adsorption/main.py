@@ -10,29 +10,11 @@ from config_ads import *
 from decimal import Decimal
 from os.path import join, dirname
 
-## Java Scripts
-#dowload_csv = open(join(dirname(__file__), "static/js/download.js")).read()
-
-## Input Data
-# Adsorption data
-df = pd.read_csv(DATA_FILE)
-#df_special = df[df["structure"]=="AlTBAPy"]
-
-# Structures[]
-list_structures = sorted(list(set(df["structure"])))
-
-# Units and Labels
-df_keys = pd.DataFrame({"Property": KEYS, "Label": LABELS, "Unit": UNITS, "Color": COLORS})
-
 ## Functions
 # Get the name from the URL
 def get_name_from_url()-> str:
     """Get structure name from URL parameter. 
-    Returns:
-    --------
-    name: str
-        name of the COF extracted from the URL 
-        If no 'name' parameter (in bytes), returns a dummy COF (linker91_CH_linker92_N_clh_relaxed)
+       If no name parameter, returns a dummy MOF (AlTBAPy)
     """
     args = curdoc().session_context.request.arguments
 
@@ -47,6 +29,7 @@ def get_name_from_url()-> str:
 
 def get_dataset(structure, molecule):
     """Extract henry and adsorption data based on user selection"""
+
     # Henry data
     Kh = df["henry"][(df['structure']==structure) & (df['molecule']==molecule)].iloc[0]
     Kh_stdev = df["henry_stdev"][(df['structure']==structure) & (df['molecule']==molecule)].iloc[0]
@@ -68,13 +51,14 @@ def get_dataset(structure, molecule):
 
     # Output
     henry_data = {"henry": ["Henry Coefficient (mol.kg\u207B\xB9.Pa\u207B\xB9)", "{:.2E}".format(Decimal(Kh)) + ' \u00B1 ' + "{:.2E}".format(Decimal(Kh_stdev)),
-                          'Henry Heat of Adsorption (kJ.mol\u207B\xB9)', "%.2f"%Q_Kh + ' \u00B1 ' + "%.2f"%Q_Kh_stdev]}
+                            'Henry Heat of Adsorption (kJ.mol\u207B\xB9)', "%.2f"%Q_Kh + ' \u00B1 ' + "%.2f"%Q_Kh_stdev]}
     adsor_data = {"pressure":pre, "uptake":upt, "uptake_lower":upt_lower, "uptake_upper":upt_upper, "heat":hea,
                   "heat_lower":hea_lower, "heat_upper":hea_upper}
     
     return ColumnDataSource(data=henry_data), adsor_data
 
 def csv_Row_to_Column(df:pd.DataFrame):
+    """Convert the data to a .csv format ready to be downloaded"""
     LIST_COLUMNS = ['pressure', 'uptake', 'uptake_stdev', 'heat', 'heat_stdev']
     SINGLEVALUE_COLUMNS = ['henry','henry_stdev', 'heat_henry', 'heat_henry_stdev']
     max_lenght = 0
@@ -106,7 +90,6 @@ def csv_Row_to_Column(df:pd.DataFrame):
                 if len(data_list) < max_lenght:
                     extra_none = max_lenght - len(data_list)
                     extra_list = extra_none * ['']
-                    print(type(data_list))
                     data_list = data_list + extra_list
                 new_dict.update({column_name: data_list})
 
@@ -117,7 +100,7 @@ def csv_Row_to_Column(df:pd.DataFrame):
 def Download_properties_handler(structure):
     df = pd.read_csv(DATA_FILE)
 
-    df_MOF = df[df['structure'] == structure ]
+    df_MOF = df[df['structure'] == structure]
 
     new_df = csv_Row_to_Column(df_MOF)
     lenght_DF = len(new_df)
@@ -164,12 +147,10 @@ def make_plot(data_source, ylabel, df_keys):
 
 # Update the plot given the different options
 def update_plot(attrname, old, new):
-    structure = structure_select.value
-    molecule = molecule_select.value
+    structureval = structure_select.value
+    moleculeval = molecule_select.value
     ylabel = ylabel_select.value
 
-    structureval = structures[structure]
-    moleculeval = molecules[molecule]
     ylabelval = ylabels[ylabel]
 
     src0, src = get_dataset(structureval, moleculeval)
@@ -179,38 +160,33 @@ def update_plot(attrname, old, new):
     download_button.disabled = False
     Download_properties_handler(structureval)
 
-    layout.children[0].children[1] = column(make_plot(plot_data,ylabelval,df_keys), Spacer(margin=(0, 0, 30, 0)), row(Spacer(margin=(0, 300, 0, 0)), table))
+    layout.children[0].children[1] = column(make_plot(plot_data, ylabelval, df_keys), Spacer(margin=(0, 0, 30, 0)),
+                                            row(Spacer(margin=(0, 300, 0, 0)), table))
 
-## Initialize the dictionaries
-structures = {i:i for i in list_structures}
-molecules = {i:i for i in MOLECULES}
+## Initialize dictionaries
 ylabels = {LABELS[i]:KEYS[i] for i in range(len(KEYS))}
 
-## Default values
-structure0 = list_structures[0]
-molecule0 = 'CO2'
-ylabel0 = 'Uptake'
-
 ## Initialize the select column
-structure_select = Select(title='Structure', options=list(structures.keys()), value=get_name_from_url(), width=WWIDTH)
-molecule_select = Select(title='Molecule', options=list(molecules.keys()), value=molecule0, width=WWIDTH)
-ylabel_select = Select(title="Label (y-axis)", options=list(ylabels.keys()), value=ylabel0, width=WWIDTH)
+structure_select = Select(title='Structure', options=structures, value=get_name_from_url(), width=WWIDTH)
+molecule_select = Select(title='Molecule', options=MOLECULES, value=defaults[1], width=WWIDTH)
+ylabel_select = Select(title="Label (y-axis)", options=list(ylabels.keys()), value=defaults[2], width=WWIDTH)
 download_button = bmd.Button(label="Download Properties", button_type='primary', tags = [27, None , 'None'], disabled = True, width=WWIDTH)
 download_button.js_on_click(bmd.CustomJS(code=open(join(dirname(__file__), "static/js/download_csv.js")).read()))
 
 ## Get the initial plot data
-table_data, plot_data = get_dataset(structures[get_name_from_url()], molecules[molecule0])
+table_data, plot_data = get_dataset(get_name_from_url(), defaults[1])
 
 ## Make the table
 columns = [TableColumn(field='henry',title='Henry Regime Properties',formatter=StringFormatter(text_align="center"))]
 table = DataTable(source=table_data, columns=columns, width=250, header_row=False, index_position=None)
      
-for w in [structure_select,molecule_select,ylabel_select]:
+for w in [structure_select, molecule_select, ylabel_select]:
     w.on_change('value', update_plot)
 
-controls = column(structure_select,molecule_select,ylabel_select,download_button)
+controls = column(structure_select, molecule_select, ylabel_select, download_button)
 
 ## Generate the page
-layout = column(row(controls, column(make_plot(plot_data,ylabels[ylabel0],df_keys), Spacer(margin=(0, 0, 30, 0)), row(Spacer(margin=(0, 300, 0, 0)), table))))
+layout = column(row(controls, column(make_plot(plot_data, ylabels[defaults[2]],df_keys), Spacer(margin=(0, 0, 30, 0)),
+                                     row(Spacer(margin=(0, 300, 0, 0)), table))))
 curdoc().add_root(layout)
 curdoc().title = "Adsorption Properties"

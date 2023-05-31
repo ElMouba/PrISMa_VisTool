@@ -2,10 +2,10 @@
 
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Spacer, FileInput, ColumnDataSource, Select, TextInput, TextAreaInput, DataTable, TableColumn, TextInput, CustomJS, Button, Div
+from bokeh.models import Spacer, FileInput, ColumnDataSource, Select, TextInput, TextAreaInput, DataTable, TableColumn
+from bokeh.models import TextInput, CustomJS, Button, Div
 from config_upl import *
 from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from os.path import dirname, join
 import smtplib
@@ -21,46 +21,33 @@ position_input = TextInput(value="", title="Position", width=WWIDTH)
 structurename_input = TextInput(value="", title="Structure Label", width=WWIDTH)
 structureDOI_input = TextInput(value="", title="Structure DOI", width=WWIDTH)
 remarks_area_input = TextAreaInput(value="", rows=6, title="Remarks", width=WWIDTH)
+
 # Type drop down
 list_types = ["Experimental", "Hypothetical"]
 consent_labels = ["", "I Agree"]
 type_select = Select(title='Structure Type', options=list({i:i for i in list_types}.keys()), value=list_types[0], width=WWIDTH)
-consent_select = Select(title='User Consent*', options=list({i:i for i in consent_labels}.keys()), value=consent_labels[0], width=WWIDTH)
-# cif file
+consent_select = Select(title='User Consent*', options=list({i:i for i in consent_labels}.keys()), value=consent_labels[0],
+                        width=WWIDTH)
+
+# Cif file
 cif_input = FileInput(accept=".cif", width=WWIDTH, title = 'cif file*')
 
 ## Updates
 # Single Line Input
-firstname_input.js_on_change("value", CustomJS(code="""
-    console.log('text_input: value=' + this.value, this.toString())
-"""))
-lastname_input.js_on_change("value", CustomJS(code="""
-    console.log('text_input: value=' + this.value, this.toString())
-"""))
-email_input.js_on_change("value", CustomJS(code="""
-    console.log('text_input: value=' + this.value, this.toString())
-"""))
-affiliation_input.js_on_change("value", CustomJS(code="""
-    console.log('text_input: value=' + this.value, this.toString())
-"""))
-position_input.js_on_change("value", CustomJS(code="""
-    console.log('text_input: value=' + this.value, this.toString())
-"""))
-structurename_input.js_on_change("value", CustomJS(code="""
-    console.log('text_input: value=' + this.value, this.toString())
-"""))
-structureDOI_input.js_on_change("value", CustomJS(code="""
-    console.log('text_input: value=' + this.value, this.toString())
-"""))
+firstname_input.js_on_change("value", CustomJS(code="""console.log('text_input: value=' + this.value, this.toString())"""))
+lastname_input.js_on_change("value", CustomJS(code="""console.log('text_input: value=' + this.value, this.toString())"""))
+email_input.js_on_change("value", CustomJS(code="""console.log('text_input: value=' + this.value, this.toString())"""))
+affiliation_input.js_on_change("value", CustomJS(code="""console.log('text_input: value=' + this.value, this.toString())"""))
+position_input.js_on_change("value", CustomJS(code="""console.log('text_input: value=' + this.value, this.toString())"""))
+structurename_input.js_on_change("value", CustomJS(code="""console.log('text_input: value=' + this.value, this.toString())"""))
+structureDOI_input.js_on_change("value", CustomJS(code="""console.log('text_input: value=' + this.value, this.toString())"""))
 
 # Multiple Lines Input
-remarks_area_input.js_on_change("value", CustomJS(code="""
-    console.log('text_area_input: value=' + this.value, this.toString())
+remarks_area_input.js_on_change("value", CustomJS(code="""console.log('text_area_input: value=' + this.value, this.toString())
 """))
 
 ## Save button
 submitbutton = Button(label="Submit", button_type="primary", width=WWIDTH)
-
 
 ## Make a table
 table_data = ColumnDataSource(data={"First":[firstname_input.value], "Last":[lastname_input.value],
@@ -82,8 +69,7 @@ columns = [TableColumn(field='First',title='First'),
            TableColumn(field='Consent',title="Consent"),
            TableColumn(field='Cifdata', title='Cifdata')]
 
-table = DataTable(source=table_data, columns=columns, width=250,
-                  index_position=None, sortable=False, selectable=False)
+table = DataTable(source=table_data, columns=columns, width=250, index_position=None, sortable=False, selectable=False)
 
 def update_table(attrname, old, new):  
     first_val = {"First":[firstname_input.value.strip()]}
@@ -113,7 +99,6 @@ def update_table(attrname, old, new):
     submitbutton.button_type = 'primary'
     submitbutton.label = 'Submit'
 
-
 def check_Emailconnection():
     '''Checks the SMTP connection
     Returns
@@ -140,7 +125,6 @@ def check_Emailconnection():
 
 def sendConfirmationEmail(form:dict, admins = []):
     '''Send confirmation email upon clicking 'submit' button
-        
         Params:
         --------
         form: dict
@@ -153,8 +137,7 @@ def sendConfirmationEmail(form:dict, admins = []):
         bool: whether or not the emails were sent
 
         '''
-   
-    #define the multipart message
+    # Define the multipart message
     msg = MIMEMultipart()
     msg['From'] = 'Prisma'
     msg['Subject'] = 'Confirmation of Submission of {} ({})'.format(form['CifName'], form['SubmissionTime'])
@@ -165,7 +148,7 @@ def sendConfirmationEmail(form:dict, admins = []):
     text = MIMEText('''
     Dear {} {},
 
-    Thanks for submitting a CIF file ({}). We will get back to you once the calculations are done.
+    Thank you for submitting a structure ({}). We will get back to you once the calculations are done.
 
     Kind regards,
     The PRISMA team
@@ -174,7 +157,7 @@ def sendConfirmationEmail(form:dict, admins = []):
     
     msg.attach(text)
 
-    # define account and sending details
+    # Define account and sending details
     username = SENDER_EMAIL
     password = SENDER_PASSWORD
     server = smtplib.SMTP('smtp.gmail.com:587')
@@ -182,12 +165,12 @@ def sendConfirmationEmail(form:dict, admins = []):
     server.starttls()
     server.login(username,password)
 
-    #attach cif file to attachment
+    # Attach cif file to attachment
     attachment = MIMEText(form['CifContent'])
     attachment.add_header('Content-Disposition', 'attachment', filename=form['CifName'])           
     msg.attach(attachment)
 
-    #attach overview submission form to message
+    # Attach overview submission form to message
     string = 'Submitted form:\n\n'
     for k,v in form.items():
         string += f'{k}\t{v}\n'
@@ -197,7 +180,6 @@ def sendConfirmationEmail(form:dict, admins = []):
 
     for receiver in toaddrs:
         print('Sending email to {}...'.format(receiver))
-
         try:
             msg['To'] = receiver
             server.sendmail('PRISMA', receiver, msg.as_string())
@@ -209,7 +191,6 @@ def sendConfirmationEmail(form:dict, admins = []):
 
 def extracting_form():
     '''Extracting submission form to dict
-
     Returns:
     ---------
     extracted: dict
@@ -237,7 +218,6 @@ def extracting_form():
 
 def handling_ciffile():
     '''Extract cif file input in submission field
-
     Returns:
     ---------
     cif_name, cif_content: str, str (None, None)
@@ -245,7 +225,7 @@ def handling_ciffile():
     cif_content = cif_input.value
     cif_name = cif_input.filename
 
-    #content is saved in base64; need decoding
+    # Content is saved in base64; need decoding
     base64_bytes = cif_content.encode('ascii')
     message_bytes = base64.b64decode(base64_bytes)
     cif_content = message_bytes.decode('ascii')
@@ -256,7 +236,6 @@ def handling_ciffile():
         return cif_name, cif_content
     except:
         return None, None
-
 
 def submit_form():
     status = check_Emailconnection()
@@ -274,7 +253,7 @@ def submit_form():
             return False
         
     sendConfirmationEmail(form, admins=ADMINS)
-    print('Email succesfully send!')
+    print('Email succesfully send')
 
     submitbutton.button_type = 'success'
     submitbutton.label = 'Submitted'
@@ -291,12 +270,14 @@ type_select.on_change('value', update_table)
 remarks_area_input.on_change('value', update_table)
 consent_select.on_change('value', update_table)
 cif_input.on_change('value', update_table)
-#submitbutton.js_on_click(CustomJS(args=dict(source=table_data),
-                            #code=open(join(dirname(__file__), "static/js/download_csv.js")).read()))
 submitbutton.on_click(submit_form)
 
 required_text = Div(text ='* required fields')
+
 ## Generate the page
-layout = column(row(column(firstname_input, affiliation_input, structurename_input, type_select, email_input, remarks_area_input), column(lastname_input, position_input, structureDOI_input, consent_select, Spacer(margin=(0,0,18,0)), cif_input)), row(required_text), row(submitbutton))
+layout = column(row(column(firstname_input, affiliation_input, structurename_input, type_select, email_input,
+                           remarks_area_input), column(lastname_input, position_input, structureDOI_input, consent_select,
+                                                       Spacer(margin=(0,0,18,0)), cif_input)), row(required_text),
+                                                       row(submitbutton))
 curdoc().add_root(layout)
 curdoc().title = "Upload"
