@@ -5,6 +5,7 @@ services:
     restart: always
     build:
       context: ./prisma-front
+    image: prisma_vistool:master
     volumes:
       - ./Uploaded:/app/Uploaded
     environment:
