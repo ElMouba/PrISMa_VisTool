@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <img src="/home/jorenvanherck/Documents/Prisma/model_microservices/adosorbaphoreModels/.testing/pdf_format/static/logo.png" class="logo">
+    
+    <h1>Overview of PrISMa Submission</h1>
+
+
+    <h2>Submission</h2>
+
+    <table class="form">
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+        </tr>
+        {% for key, value in form.items() %}
+        <tr>
+            <td>{{ key }}</td>
+            <td>{{ value }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Model Predictions</h2>
+    <p>The structure is extracted from the CIF file and cleaned with c2x. This extra step was needed to create a Persistence Homology Images (PHImages), a descriptor related
+        to the pore geometry. The PH image was used to predict (i) the Net Carbon Avoidance Cost relative to the MEA-based benchmark and (ii) the water resistance. Both models 
+        where trained for the cement case in the UK with TSA process.
+    </p>
+
+    <table class="predictions">
+        <tr>
+            <th>Model Name</th>
+            <th>Input Type</th>
+            <th>Prediction</th>
+            <th>Explanation</th>
+        </tr>
+        {% for entry in data %}
+        <tr>
+            <td>{{ entry.model_name }}</td>
+            <td>{{ entry.model_input_type }}</td>
+            <td>{{ entry.prediction }}</td>
+            <td>{{ entry.prediction_explanation }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

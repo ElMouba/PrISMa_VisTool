@@ -1,15 +1,57 @@
-version: '2'
+version: "3.3"
 
 services:
   bokeh:
     restart: always
     build:
-      context: .
-    image: prisma_vistool:master
+      context: ./prisma-front
+    volumes:
+      - ./Uploaded:/app/Uploaded
     environment:
       BOKEH_PREFIX: ""
       PYTHONPATH: '/project'
       SHELL: '/bin/bash'
-
     ports:
-      - '5006:5006'
+      - 5006:5006
+
+  listener:
+    restart: always
+    build:
+      context: ./event_listener
+    volumes:
+      - ./Uploaded:/Uploaded
+    ports:
+      - 127.0.0.1:${LISTENER_PORT}:${LISTENER_PORT}
+
+  cleaning:
+    restart: always
+    build:
+      context: ./cleaning
+    environment:
+      - PORT=${CLEANING_PORT}
+      - WORKERS=${WORKERS}
+      - CONCURRENCY_LIMIT=${CONCURRENCY_LIMIT}
+    ports:
+      - 127.0.0.1:${CLEANING_PORT}:${CLEANING_PORT}
+
+  models:
+    restart: always
+    build:
+      context: ./adosorbaphoreModels
+    environment:
+      - PORT=${MODELS_PORT}
+      - WORKERS=${WORKERS}
+      - CONCURRENCY_LIMIT=${CONCURRENCY_LIMIT}
+    ports:
+      - 127.0.0.1:${MODELS_PORT}:${MODELS_PORT}
+
+  email:
+    restart: always
+    build:
+      context: ./email
+    environment:
+      - PORT=${EMAIL_PORT}
+      - WORKERS=${WORKERS}
+      - CONCURRENCY_LIMIT=${CONCURRENCY_LIMIT}
+    ports:
+      - 127.0.0.1:${EMAIL_PORT}:${EMAIL_PORT}
