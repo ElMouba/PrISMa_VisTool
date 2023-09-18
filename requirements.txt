@@ -17,4 +17,4 @@ requests
 Jinja2==3.1.1
 pdfkit
 bokeh==3.0.3
-pandas==1.3.5
+pandas==2.0.2
