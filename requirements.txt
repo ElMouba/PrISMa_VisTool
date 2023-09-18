@@ -5,7 +5,6 @@ fastcore==1.5.29
 mofdscribe~=0.0.8
 moleculetda ~= 0.2.1
 optuna~=3.3.0
-pandas==2.0.2
 pervect~=0.0.2
 pymatgen~=2023.7.20
 rdkit~=2022.9.5
