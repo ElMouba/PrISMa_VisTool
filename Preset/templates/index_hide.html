@@ -1,0 +1,168 @@
+{% extends base %}
+
+{% block postamble %}
+  <style>
+    {% include "material.indigo-blue.min.css" %}
+    {% include "style.css" %}
+  </style>
+{% endblock %}
+
+{% block contents %}
+<div class="content" >
+<div class="content-float" >
+
+<p>
+  The following page displays a <b> Preset </b> of data visualization options
+</p>
+<p>
+  Click on the <b> option </b> of interest  
+</p>
+
+<!-- Create a class with one row and three columns -->
+<div class="three-column-grid">
+  <!-- Insert the first figure type in the first column-->
+  <div class="grid-item">
+    <figure>
+      <div class="container">
+        <!--a href="Upload"-->
+          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Upload_default.png">
+          <!--div class="hover-text">Upload A Structure</div-->
+          <div class="hover-text">Coming Soon</div>
+        <!--/a-->
+      </div>
+      <figcaption>
+      </figcaption>
+    </figure>
+  </div>
+  <!-- Insert the second figure type in the second column-->
+  <div class="grid-item">
+    <figure>
+      <div class="container">
+        <a href="https://prisma.hw.ac.uk/"> 
+          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/PrISMa_default.png">
+        </a>
+      </div>
+      <figcaption>
+      </figcaption>
+    </figure>
+  </div>
+  <!-- Insert the third figure type in the third column-->
+  <div class="grid-item">
+    <figure>
+      <div class="container">
+        <!--a href="Table"-->
+          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Table_default.png">
+          <!--div class="hover-text">Database</div-->
+          <div class="hover-text">Coming Soon</div>
+        <!--/a-->
+      </div>
+      <figcaption>
+      </figcaption>
+    </figure>
+  </div>
+</div>
+
+<!-- Create a class with one row and three columns -->
+<div class="three-column-grid">
+  <!-- Insert the first figure type in the first column-->
+  <div class="grid-item">
+    <figure>
+      <div class="container">
+        <!--a href="Figure"-->
+          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Figure_default.png">
+          <!--div class="hover-text">KPIs-3D</div-->
+          <div class="hover-text">Coming Soon</div>
+        <!--/a-->
+      </div>
+      <figcaption>
+      </figcaption>
+    </figure>
+  </div>
+  <!-- Insert the second figure type in the second column-->
+  <div class="grid-item">
+    <figure>
+      <div class="container">
+        <!--a href="Line"-->
+          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Line_default.png">
+          <!--div class="hover-text">KPIs-Line</div-->
+          <div class="hover-text">Coming Soon</div>
+        <!--/a-->
+      </div>
+      <figcaption>
+      </figcaption>
+    </figure>
+  </div>
+  <!-- Insert the third figure type in the third column-->
+  <div class="grid-item">
+    <figure>
+      <div class="container">
+        <!--a href="Adsorption"-->
+          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Adsorption_default.png">
+          <!--div class="hover-text">Adsorption Properties</div-->
+          <div class="hover-text">Coming Soon</div>
+        <!--/a-->
+      </div>
+      <figcaption>
+      </figcaption>
+    </figure>
+  </div>
+</div>
+
+<!-- Create a class with one row and three columns -->
+<div class="three-column-grid">
+  <!-- Insert the first figure type in the first column-->
+  <div class="grid-item">
+    <figure>
+      <div class="container">
+        <!--a href="Upload"-->
+          <!--img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Upload_default.png"-->
+          <!--div class="hover-text">Upload A Structure</div-->
+          <!--div class="hover-text">Coming Soon</div-->
+        <!--/a-->
+      </div>
+      <figcaption>
+      </figcaption>
+    </figure>
+  </div>
+  <!-- Insert the second figure type in the second column-->
+  <div class="grid-item">
+    <figure>
+      <div class="container">
+        <!--a href="Compare"--> 
+          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Compare_default.png">
+          <!--div class="hover-text">Compare</div-->
+          <div class="hover-text">Coming Soon</div>
+        <!--/a-->
+      </div>
+      <figcaption>
+      </figcaption>
+    </figure>
+  </div>
+  <!-- Insert the third figure type in the third column-->
+  <div class="grid-item">
+    <figure>
+      <div class="container">
+        <!--a href="Table"-->
+          <!--img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Table_default.png"-->
+          <!--div class="hover-text">Database</div-->
+          <!--div class="hover-text">Coming Soon</div-->
+        <!--/a-->
+      </div>
+      <figcaption>
+      </figcaption>
+    </figure>
+  </div>
+</div>
+
+<img height="150"/>
+<img height="400" />
+
+<img height="150"/>
+<img src="Preset/static/images/Partners.png" width="850" height="85"/>
+<!-- No actual bokeh content to display, but let's keep it here //-->
+{{ super() }}
+
+</div>
+</div>
+
+{% endblock %}
