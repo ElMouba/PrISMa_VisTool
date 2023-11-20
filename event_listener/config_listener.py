@@ -1,1 +1,0 @@
-SHARED_FOLDER = "./Uploaded/"
