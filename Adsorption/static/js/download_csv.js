@@ -18,7 +18,7 @@ const number = (cb_obj)['origin']['tags'][0]
 const test = (cb_obj)['origin']['tags'][1]
 const mof = (cb_obj)['origin']['tags'][2]
 
-const filename = mof + '-adsorption-data.csv'
+const filename = mof + '_adsorption_data.csv'
 const filetext = table_to_csv(test, number)
 const blob = new Blob([filetext], { type: 'text/csv;charset=utf-8;' })
 

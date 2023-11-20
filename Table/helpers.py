@@ -1,8 +1,5 @@
-from os.path import exists, join
+from os.path import exists
 import pandas as pd
-import yaml
-
-from bokeh.io import curdoc
 
 from .config_tab import *
 
@@ -16,19 +13,6 @@ def importing_data(csv_file: str, verbose:bool = True) -> pd.DataFrame:
     if verbose:
         print('Importing dataframe from {} ({} entries; {} columns)'.format(csv_file, len(df), len(df.columns)))
     return df
-
-def import_column_info(verbose = True) -> dict:
-    '''Importing columns info from yaml file to dict {column:unit}'''
-    if not exists(COLFILE):
-        raise FileExistsError("Could not find {}".format(COLFILE))
-
-    with open((COLFILE), 'r') as f:
-        quantity_list = yaml.full_load(f)
-        if verbose:
-            print('{} entries in {}'.format(len(quantity_list), COLFILE))
-
-    col_dict = {i['column']: i['unit'] for i in quantity_list}
-    return col_dict
 
 def clean_dataframe(df:pd.DataFrame, verbose = True):
     '''Cleaning MOF pandas dataframe by\n
@@ -60,47 +44,3 @@ def clean_dataframe(df:pd.DataFrame, verbose = True):
     df = df[HEADER_ORDER]
 
     return df
-
-def adding_cif_directory(dataframe: pd.DataFrame):
-    if not exists(CIF_DIR):
-        raise NotADirectoryError('Given directory for cif files ({}) not found...'.format(CIF_DIR))
-    
-    if 'cif_dir' not in dataframe.columns:
-        print('cif_dir column not in dataframe, will be added.')
-        dataframe['CIF_BOOL'] = False
-        dataframe['CIF_dir'] = 'Not Found'
-
-    not_found = 0
-    print('Searching cif files in {}'.format(CIF_DIR))
-    for index, row in dataframe.iterrows():
-
-        name = (row['name'])
-        cif_file = f'{name}.cif'
-        cif_file_dir = join(CIF_DIR, cif_file)
-
-        if exists(cif_file_dir):         
-            dataframe.at[index, 'CIF_BOOL'] = True
-            dataframe.at[index, 'CIF_dir'] = cif_file_dir
-        
-        else:
-            not_found += 1
-            dataframe.at[index, 'CIF_BOOL'] = False
-            dataframe.at[index, 'CIF_dir'] = 'Not Found'
-    
-    print('CIF files not found for {}/{} ({} %)'.format(not_found, len(dataframe), round((not_found/len(dataframe)*100), 2)))
-    return dataframe
-        
-
-def adding_cif_content(dataframe:pd.DataFrame) -> pd.DataFrame:
-    for i, row in dataframe.iterrows():
-        if row['CIF_BOOL']:
-            cif_file = (row['CIF_dir'])
-            content = []
-            with open(cif_file, 'r+') as f:
-                content = f.read()
-            
-            dataframe.at[i, 'CIF_content'] = content
-        else:
-            dataframe.at[i, 'CIF_content'] = 'N/A'
-    return dataframe
-

@@ -1,24 +1,39 @@
+import pandas as pd
 import yaml
 
-# Region
-list_regions = ['China', 'United Kingdoms', 'Switzerland', 'United States']
+with open('data/data_read.yml') as f:
+    case_yml = yaml.load(f, Loader=yaml.SafeLoader)
 
-# Source
-list_sources = ['Cement', 'Coal Fired Power Plant', 'Natural Gas Power Plant']
+with open('data/KPIs.yml') as f:
+    kpis_yml = yaml.load(f, Loader=yaml.SafeLoader)
 
-# Process
-list_processes = ['Temperature Swing Adsorption', 'Temperature/Vacuum Swing Adsorption (0.6)',
-                  'Temperature/Vacuum Swing Adsorption (0.2)']
+# Material KPIs
+df_mat = pd.read_csv("data/Material_KPIs.csv")
 
-# Layers (add materials layer data)
-list_layers = ['Material', 'Process', 'Techno-Economics', 'Life Cycle Assessment']
+# Case study input
+regions = list(case_yml["Region"].keys())
+sources = list(case_yml["Source"].keys())
+utilities = list(case_yml["Utility"].keys())
+processes = list(case_yml["Process"].keys())
 
-# x, y and z keys
-with open('Figure/data/KPIs.yml') as f:
-    kpis_yaml = yaml.load(f, Loader=yaml.SafeLoader)
-list_keys = [kpis_yaml[i]["kpi"] for i in range(len(kpis_yaml))]
-label_keys = [kpis_yaml[i]["label"] for i in range(len(kpis_yaml))]
-unit_keys = [kpis_yaml[i]["unit"] for i in range(len(kpis_yaml))]
+# Platform layers
+layers = ['Material', 'Process', 'Techno-Economics', 'Life Cycle Assessment']
+
+# x-, y- and z-axes keys 
+list_keys = [kpis_yml[i]["kpi"] for i in range(len(kpis_yml))]
+label_keys = [kpis_yml[i]["label"] for i in range(len(kpis_yml))]
+unit_keys = [kpis_yml[i]["unit"] for i in range(len(kpis_yml))]
+df_keys = pd.DataFrame({"KPI": list_keys, "Label": label_keys, "Unit": unit_keys})
+KPI_count = [5, 13, 23]
+
+# Default input (region, source, process, xlayer, ylayer, zlayer, xlabel, ylabel, zlabel, xlog, ylog, zlog, material)
+defaults = ['United Kingdom', 'Cement', 'Temperature Swing Adsorption', 'Process', 'Techno-Economics', 'Process', 'Recovery',
+            'nCAC', 'Specific Heating Energy', 'linear', 'log', 'linear', 'None', 'w/ Heat Extraction']
+
+# Non-KPIs to drop from the excel file
+to_drop = ['Unnamed: 0', 'product_out', 'n_out_vac', 'rho_b', 'time_steps', 'vac_decay', 'selectivity', 'spec_heat_tot',
+           'spec_cool_tot','spec_power_tot', 'productivity_tea', 'CO2_captured', 'var_OPEX', 'CAPEX_bd', 'OPEX_bd', 'CAC_bd',
+           'power_output_ccs', 'CAC_approx_neg', 'SPECCA_approx_neg']
 
 # Plot Variables
 HEIGHT = 600

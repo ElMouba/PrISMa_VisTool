@@ -1,0 +1,16 @@
+version: "3.3"
+
+services:
+  bokeh:
+    restart: always
+    build:
+      context: ./prisma-front
+    image: prisma_vistool:master
+    volumes:
+      - ./Uploaded:/app/Uploaded
+    environment:
+      BOKEH_PREFIX: ""
+      PYTHONPATH: '/project'
+      SHELL: '/bin/bash'
+    ports:
+      - 5006:5006

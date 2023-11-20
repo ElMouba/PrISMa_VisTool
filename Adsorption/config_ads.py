@@ -1,14 +1,24 @@
+import pandas as pd
+
 # Adsorption data
-DATA_FILE = "Adsorption/data/adsorption-data.csv"
+DATA_FILE = "data/adsorption_data.csv"
+df = pd.read_csv(DATA_FILE)
+
+# Structures
+structures = sorted(list(set(df["structure"])))
 
 # Units and Labels
 KEYS = ["uptake", "heat"]
 LABELS = ["Uptake", "Isosteric Heat of Adsorption"]
 UNITS = ["mol/kg", "kJ/mol"]
 COLORS = ["blue", "red"]
+df_keys = pd.DataFrame({"Property": KEYS, "Label": LABELS, "Unit": UNITS, "Color": COLORS})
 
 # Molecules
 MOLECULES = ['CO2', 'N2']
+
+# Default values
+defaults = [structures[0], 'CO2', 'Uptake']
 
 # Plot Variables
 HEIGHT = 600

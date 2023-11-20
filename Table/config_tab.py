@@ -1,10 +1,8 @@
 ALLOW_DOUBLECLICK = True
 
-DATA_FILE = 'Table/data/datatable.csv'
+DATA_FILE = 'data/datatable.csv'
 
-COLFILE = 'Table/static/columns.yml'
-
-CIF_DIR = 'Table/data/CIFs'
+CIF_DIR = 'data/CIFs'
 
 FONTSIZE = 13
 
