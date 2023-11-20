@@ -1,7 +1,0 @@
-FROM python:3.8
-
-ENV SENDER_EMAIL="prismastructures@gmail.com"
-ENV SENDER_APP_PASSWORD="ctjadksgrsjkabvf"
-
-COPY send_emal.py /app/
-WORKDIR /app
