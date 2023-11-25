@@ -15,6 +15,7 @@ dowload_csv = open(join(dirname(__file__), "static/js/download_csv.js")).read()
 download_cif_js = open(join(dirname(__file__), 'static', 'js', 'download_cif.js')).read()
 properties_direct = open(join(dirname(__file__), 'static', 'js', 'properties_direct.js')).read()
 table_direct = open(join(dirname(__file__), 'static', 'js', 'table_direct.js')).read()
+structure_direct = open(join(dirname(__file__), 'static', 'js', 'structure_direct.js')).read()
 
 # Importing and Cleaning Data
 df = importing_data(DATA_FILE, verbose=VERBOSE)
@@ -159,12 +160,12 @@ def change_selection(verbose = VERBOSE):
     datatable.source.selected.indices  = [len(df) -2 , len(df)-1]
    
     if datatable.frozen_rows == 0:
-        sorting_switch.active = True
+        sorting_switch.active = [0,1]
         button_copy.disabled = True
         button_selection_csv.disabled = True
 
     else:
-        sorting_switch.active = False
+        sorting_switch.active = [1]
         button_copy.disabled = False
         button_selection_csv.disabled = False
 
@@ -178,42 +179,18 @@ def change_selection(verbose = VERBOSE):
 # Sorting Switch
 def switch_handler(attr, old, new):
     '''if activated, frozen rows to 0 and sorting via column allowed'''
-
-    if new == True:
+    if new == [0,1]:
         data_table.sortable = True
         data_table.frozen_rows = 0
+        sorting_switch.labels = ['Sorting Allowed']
         
-    if new == False:
+    if new == [1]:
         data_table.sortable = False
-
-sorting_text = bmd.Div(text = 'Allow sorting')
-sorting_switch = bmd.Switch(active=True)
+        sorting_switch.labels = ['Sorting Disabled']
+        
+sorting_switch = bmd.CheckboxButtonGroup(labels = ['Allow Sorting'], active = [1], width = 10)
 sorting_switch.on_change('active', switch_handler)
 
-previous_selected_index =[]
-
-def selection_handler_doubleclick(attr, old, new):
-    '''Add selected to compare upon double click\n
-    Multiple selection not possible
-    TO DO: Clean function
-    '''
-    try:
-        global previous_selected_index
-        if len(source.selected.indices) > 2:
-            source.selected.indices = [new[-1],len(df)-1]
-            return         # Declare it as global variable
-        selected = source.selected.indices
-        if(len(selected)==1):
-            selected_index= selected[0]
-            if(selected == previous_selected_index):     
-                change_selection()
-        else:
-            selected_index = selected[0]             
-            # Save 
-        previous_selected_index  = [selected_index] 
-        source.selected.indices = [selected_index, len(df)-1]
-    except Exception as e:
-        source.selected.indices = [selected_index, len(df)-1]
 
 previous_selected_index = [0,0]
 ignore_index_change = False
@@ -237,6 +214,7 @@ def selection_handler_doubleclick2(attr, old, new):
         previous_selected_index = [first_selected, len(df)-1]
 
 def selection_handler_cif(attr, old, new):
+    global selected
     entry_name = datatable.source.data['Label'][new[0]]
     name_cif_file = '{}.cif'.format(entry_name)
     cif_directory = os.path.join(CIF_DIR, name_cif_file)
@@ -252,6 +230,10 @@ def selection_handler_cif(attr, old, new):
     btn_properties.disabled = False
     btn_download_cif.label = "Download CIF ({})".format(entry_name)
     btn_properties.tags = [entry_name]
+
+    btn_structure.disabled = False
+    btn_structure.label = "View structure ({})".format(entry_name)
+    btn_structure.tags = [entry_name]
 
 source.selected.on_change('indices', selection_handler_doubleclick2)
 source.selected.on_change('indices', selection_handler_cif)
@@ -334,9 +316,14 @@ btn_properties = bmd.Button(label='Adsorption Properties', button_type='primary'
 btn_properties.css_classes = ['custom_button_1']
 btn_properties.js_on_click(bmd.CustomJS(code=table_direct))
 
+# Go to structure
+btn_structure = bmd.Button(label='View Structure', button_type='primary', tags = ['Nothing Selected/Structure'],
+                            disabled = True, width=410)
+btn_structure.js_on_click(bmd.CustomJS(code=structure_direct))
+
 # Document Layout
 curdoc().title = 'Database'
 top_row = row(search_function, sort_selection_select)
-sorting_option = row(sorting_text, sorting_switch)
+sorting_option = row(sorting_switch)
 selection_options = row(button_copy, button_selection_csv)
-curdoc().add_root(column(top_row, datatable, sorting_option, selection_options, botton_csv, btn_download_cif, btn_properties))
+curdoc().add_root(column(top_row, datatable, sorting_option, selection_options, botton_csv, btn_download_cif, btn_properties, btn_structure))

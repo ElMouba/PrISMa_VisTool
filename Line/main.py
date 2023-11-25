@@ -3,18 +3,22 @@
 import bokeh.models as bmd
 import pandas as pd
 import yaml
+import os
 
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import LabelSet, ColumnDataSource, MultiChoice, Select, CustomJS
+from bokeh.models import LabelSet, ColumnDataSource, MultiChoice, Select, CustomJS, Spacer, Div, Button
 from bokeh.plotting import figure
 from config_lin import *
 from os.path import dirname, join
+
+from jsmol_bokeh_extension import JSMol
 
 ## Functions needed
 # Use the user options to extract the required data
 def get_dataset(region, source, process, utility):
     # Extract the abbreviations from the .yml file
+    global case_yml
     reg = case_yml["Region"][region]
     cas = case_yml["Source"][source]
     uti = case_yml["Utility"][utility]
@@ -122,7 +126,25 @@ def make_plot(data_source, wlabel, xlabel, ylabel, zlabel, material, df_keys, kp
     labels = LabelSet(x='xval', y= 'yval', x_offset=-20, text='labelval', source=source_label, text_font_size="7pt", text_color="black")
     p.add_layout(labels)
 
-    return p
+    help_button_width = 50
+    total_lenght = WIDTH - (len(label_tot)*help_button_width)
+    helps = []
+    for i in label_tot:
+        if i in ['Henry Selectivity', 'Purity', 'Productivity', 'nCAC', 'Climate Change', 'Material Resources: Metals/Minerals']:
+
+            help_button = Button(label = 'video', width = help_button_width)
+            youtube_video_url = HELPS[i]
+            js_code = f"window.open('{youtube_video_url}', '_blank', 'popup=yes');"
+
+            help_button.js_on_click(CustomJS(code=js_code))
+
+            helps.append(help_button)
+        else:
+            helps.append(Spacer(width = help_button_width))
+        helps.append(Spacer(width = int(total_lenght/int(len(label_tot)))))
+
+    a = column(p, row(helps))
+    return a
 
 # Update the layout given the different options 
 def update_source(attr, old, new):
@@ -167,6 +189,7 @@ def update_utility(attr, old, new):
 
 # Update the plot given the different options
 def update_plot(attrname, old, new):
+    print(attrname, old, new)
     regionval = region_select.value
     sourceval = source_select.value
     utilityval = utility_select.value
@@ -182,7 +205,14 @@ def update_plot(attrname, old, new):
     
     src = get_dataset(regionval, sourceval, processval, utilityval)
     plot_data.update(src)
-    layout.children[0].children[1] = make_plot(plot_data, wlabelval, xlabelval, ylabelval, zlabelval, materialval, df_keys, kpival, TOP) 
+    layout.children[0].children[2] = make_plot(plot_data, wlabelval, xlabelval, ylabelval, zlabelval, materialval, df_keys, kpival, TOP)
+
+def get_cif_content_from_disk(filename):
+    """ Load CIF content from disk """
+    with open(filename, 'r') as f:
+        content = f.read()
+    return content
+
 
 ## Initialize the dictionaries
 labels = {label_keys[i]:list_keys[i] for i in range(len(list_keys))}
@@ -221,8 +251,81 @@ for w in [region_select, source_select, utility_select, process_select, wlabel_s
           zlabel_select, material_select, kpi_select]:
     w.on_change('value', update_plot)
 
+#### JSMOL ###
+def run_script(attr, old, new):
+    if not new:
+        print(new)
+        layout.children[0].children[3].children[4]= Spacer(height = 5)
+        nameDisplay.text = ''
+        return
+    print(f'Changing jmol to {new}')
+    cifname= new[-1]
+    ciffile = f'{cifname}.cif'
+    ciffile =  os.path.join('./data/CIFs', ciffile)
+    if os.path.exists(ciffile):
+        print(f'{ciffile} found!')
+
+    cifcontent_new = get_cif_content_from_disk(ciffile)
+    """Run JSMol script specified by user."""
+    script_source_new = ColumnDataSource()
+
+    info_new = dict(
+        height='100%',
+        width='100%',
+        serverURL='https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php',
+        use='HTML5',
+        j2sPath='https://chemapps.stolaf.edu/jmol/jsmol/j2s',
+        script="""
+set antialiasDisplay ON; background white; set displayCellParameters FALSE; set disablePopupMenu FALSE;
+load data "cifstring"
+{}
+end "cifstring"
+    """.format(cifcontent_new)
+    )
+    applet_new = JSMol(
+        width=400,
+        height=400,
+        script_source=script_source_new,
+        info=info_new,
+    )
+
+    nameDisplay.text = f'<h2><a href=Structure?name={cifname} target="_blank">{cifname}</a></h2>'
+
+    layout.children[0].children[3].children[4]= applet_new
+    print(applet.__dict__)
+
+
+
+applet = Spacer(height = 5)
+nameDisplay = Div(text= '', align = 'center')
+
+material_select.on_change('value', run_script)
+
+def create_LinkedButton(url:str, width = 25, height = 30):
+    button = Button(label = 'video', width = width, height = height)
+    js_code = f"window.open('{url}', '_blank', 'popup=yes', 'width=100,height=400');"
+
+    button.js_on_click(CustomJS(code=js_code))
+    return button
+
+help_case = create_LinkedButton(HELPS_EXTRA['CaseStudies'])
+help_process = create_LinkedButton(HELPS_EXTRA['TVSA'])
+help_KPI_mat= create_LinkedButton(HELPS_EXTRA['KPIs_material'])
+help_KPI_pro= create_LinkedButton(HELPS_EXTRA['KPIs_process'])
+help_KPI_TEA= create_LinkedButton(HELPS_EXTRA['KPIs_TEA'])
+help_KPI_LCA= create_LinkedButton(HELPS_EXTRA['KPIs_LCA'])
+
+helps = column(help_case, Spacer(height = 80), 
+               help_process, Spacer(height = 20, width = 70), 
+               help_KPI_mat, Spacer(height = 60), 
+               help_KPI_pro, Spacer(height = 55), 
+               help_KPI_TEA, Spacer(height = 40), 
+               help_KPI_LCA)
 ## Generate the page
-layout = column(row(controls, column(make_plot(plot_data, defaults[3], defaults[4], defaults[5], defaults[6], defaults[7],
-                                               df_keys, defaults[8], TOP)), column(material_select, kpi_select)))
+layout = column(row(helps, controls, 
+                    column(make_plot(plot_data, defaults[3], defaults[4], defaults[5], defaults[6], defaults[7],
+                                               df_keys, defaults[8], TOP)), 
+                    column(material_select, kpi_select, Spacer(height = 250), nameDisplay, applet)))
+
 curdoc().add_root(layout)
 curdoc().title = "KPI-Line"
