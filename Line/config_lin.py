@@ -45,3 +45,19 @@ DATA_SIZE = 1
 
 # Widget width
 WWIDTH = 300
+
+HELPS = {'Henry Selectivity': 'https://www.youtube.com/watch?v=CCbrVYcvac8',
+        'Purity':"https://www.youtube.com/watch?v=qWwJyzBy7Lc",
+        'Productivity': "https://www.youtube.com/watch?v=qWwJyzBy7Lc", 
+        'nCAC': 'https://www.youtube.com/watch?v=U33Vyb4WJNU', 
+        'Climate Change': 'https://www.youtube.com/watch?v=bPx_LMAdIgA', 
+        'Material Resources: Metals/Minerals': "https://www.youtube.com/watch?v=bPx_LMAdIgA",
+        }
+
+HELPS_EXTRA = {'CaseStudies': 'https://www.youtube.com/watch?v=hoTej9Ls4S8', 
+               'TVSA' : 'https://www.youtube.com/watch?v=l_o4tgXxmuw', 
+               'KPIs_material': 'https://www.youtube.com/watch?v=CCbrVYcvac8',
+               'KPIs_process': 'https://www.youtube.com/watch?v=qWwJyzBy7Lc',
+               'KPIs_TEA': 'https://www.youtube.com/watch?v=U33Vyb4WJNU',
+               'KPIs_LCA': 'https://www.youtube.com/watch?v=bPx_LMAdIgA'
+               }

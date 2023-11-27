@@ -1,0 +1,4 @@
+bokeh==2.3.3
+pandas==1.3.5
+manage_crystal==0.2.0
+jsmol_bokeh_extension==0.2.2

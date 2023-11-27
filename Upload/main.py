@@ -7,10 +7,15 @@ from bokeh.models import TextInput, CustomJS, Button, Div
 from config_upl import *
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from os.path import dirname, join
+from email.mime.application import MIMEApplication
+
 import smtplib
 import base64
-import time
+import datetime
+
+import json
+
+
 
 ## All input data needed
 firstname_input = TextInput(value="", title="First Name*", width=WWIDTH)
@@ -30,7 +35,7 @@ consent_select = Select(title='User Consent*', options=list({i:i for i in consen
                         width=WWIDTH)
 
 # Cif file
-cif_input = FileInput(accept=".cif", width=WWIDTH, title = 'cif file*')
+cif_input = FileInput(accept=".cif", width=WWIDTH)
 
 ## Updates
 # Single Line Input
@@ -99,96 +104,6 @@ def update_table(attrname, old, new):
     submitbutton.button_type = 'primary'
     submitbutton.label = 'Submit'
 
-def check_Emailconnection():
-    '''Checks the SMTP connection
-    Returns
-    -------
-    server_status: int
-        SMTP status code
-        250 (Requested mail action okay, completed)
-        535 (Username and Password not accepted)
-        '''
-    username = SENDER_EMAIL
-    password = SENDER_PASSWORD
-    server = smtplib.SMTP('smtp.gmail.com:587')
-    server.ehlo()
-    server.starttls()
-    
-    try:
-        server.login(username,password)
-        server_status = server.noop()[0]
-
-    except smtplib.SMTPAuthenticationError as e:
-        server_status = e.smtp_code
-
-    return server_status
-
-def sendConfirmationEmail(form:dict, admins = []):
-    '''Send confirmation email upon clicking 'submit' button
-        Params:
-        --------
-        form: dict
-            completed form on webpage. As extracted by extracting_form()
-        admins: list
-            list of additional email adress to send the confirmation to
-        
-        Returns:
-        ---------
-        bool: whether or not the emails were sent
-
-        '''
-    # Define the multipart message
-    msg = MIMEMultipart()
-    msg['From'] = 'Prisma'
-    msg['Subject'] = 'Confirmation of Submission of {} ({})'.format(form['CifName'], form['SubmissionTime'])
-
-    toaddrs = [form['Email']]
-    toaddrs = set(toaddrs + admins)
-
-    text = MIMEText('''
-    Dear {} {},
-
-    Thank you for submitting a structure ({}). We will get back to you once the calculations are done.
-
-    Kind regards,
-    The PRISMA team
-    '''
-    .format(form['FirstName'], form['LastName'], form['SubmissionTime']))
-    
-    msg.attach(text)
-
-    # Define account and sending details
-    username = SENDER_EMAIL
-    password = SENDER_PASSWORD
-    server = smtplib.SMTP('smtp.gmail.com:587')
-    server.ehlo()
-    server.starttls()
-    server.login(username,password)
-
-    # Attach cif file to attachment
-    attachment = MIMEText(form['CifContent'])
-    attachment.add_header('Content-Disposition', 'attachment', filename=form['CifName'])           
-    msg.attach(attachment)
-
-    # Attach overview submission form to message
-    string = 'Submitted form:\n\n'
-    for k,v in form.items():
-        string += f'{k}\t{v}\n'
-    overview = MIMEText(string)
-    overview.add_header('Content-Disposition', 'attachment', filename='submissionForm.txt')           
-    msg.attach(overview)
-
-    for receiver in toaddrs:
-        print('Sending email to {}...'.format(receiver))
-        try:
-            msg['To'] = receiver
-            server.sendmail('PRISMA', receiver, msg.as_string())
-        except:
-            print('Error: Could not send an email to {}'.format(receiver))
-        time.sleep(1)
-    server.quit()
-    return True
-
 def extracting_form():
     '''Extracting submission form to dict
     Returns:
@@ -197,7 +112,7 @@ def extracting_form():
         extracted dict
     '''
     try:
-        cif_name, cif_content = handling_ciffile()
+        cif_name, cif_content, base_name = extract_cifcontent()
     except:
         pass
     extracted = {'FirstName': firstname_input.value or None,
@@ -211,16 +126,17 @@ def extracting_form():
                  'Remarks' : remarks_area_input.value or None,
                  'Consent' : consent_select.value or None,
                  'CifName' : cif_name or None,
-                 'SubmissionTime': time.strftime('%Y-%m-%d %H:%M', time.localtime()) or None,
+                 'CifBaseName': base_name, 
+                 'SubmissionTime': datetime.datetime.now().strftime('%Y-%m-%d %H:%M') or None,
                  'CifContent' : cif_content or None
     }
     return extracted
 
-def handling_ciffile():
+def extract_cifcontent():
     '''Extract cif file input in submission field
     Returns:
     ---------
-    cif_name, cif_content: str, str (None, None)
+    cif_name, cif_content, base_name: str, str, str (None, None, None)
     '''
     cif_content = cif_input.value
     cif_name = cif_input.filename
@@ -230,18 +146,19 @@ def handling_ciffile():
     message_bytes = base64.b64decode(base64_bytes)
     cif_content = message_bytes.decode('ascii')
 
-    try:
-        with open(cif_name, 'w') as f:
-            f.write(cif_content)
-        return cif_name, cif_content
-    except:
-        return None, None
+    base_name = cif_name.split('.cif')[0]
 
+    return cif_name, cif_content, base_name
+                       
 def submit_form():
-    status = check_Emailconnection()
-    if not status == 250:
-        print("Could not send email")
-        return None
+    log_messag = {"frontendSubmission":
+            {
+                'success': True,
+                'error': {}}
+            }
+    
+    submitbutton.button_type = 'success'
+    submitbutton.label = 'Submitted'
     
     form = extracting_form()
     for required in REQUIRED_FIELDS:
@@ -250,15 +167,37 @@ def submit_form():
             print("Please fill in the required fields")
             submitbutton.button_type = 'danger'
             submitbutton.label = 'Please fill in the required fields'
-            return False
-        
-    sendConfirmationEmail(form, admins=ADMINS)
-    print('Email succesfully send')
+            log_messag['frontendSubmission']['success'] = False
+            log_messag['frontendSubmission']['error'] = 'MissingRequiredFieldError'
+            print(log_messag)
+            return log_messag
 
-    submitbutton.button_type = 'success'
-    submitbutton.label = 'Submitted'
-    return True
 
+    try:
+        time_string = form['SubmissionTime'].replace('-', '').replace(' ', '_').replace(':', '')
+        shared_folder_path = "{}/{}_{}_uploaded.json".format(SHARED_FOLDER, time_string, form['CifBaseName'])
+        with open(shared_folder_path, "w") as file:
+            json.dump(form, file)
+
+    except Exception as e:
+        log_messag['frontendSubmission'] = { "success": False, "error":{
+            "exception_type": type(e).__name__,
+            "message": str(e),
+        }}
+
+    print(log_messag)
+    return log_messag
+
+confirm_submission = CustomJS(args=dict(button=submitbutton, type = 'primary', millisec = 1000), code="""
+    setTimeout(function() {
+    if (button.button_type == 'success') {
+        alert('Thanks for submitting a structure to the platform. We will come back to you when the calculations are done.');        
+        window.location.reload();      
+    }
+}, millisec);
+    
+""")
+                              
 firstname_input.on_change('value', update_table)
 lastname_input.on_change('value', update_table)
 email_input.on_change('value', update_table)
@@ -271,13 +210,18 @@ remarks_area_input.on_change('value', update_table)
 consent_select.on_change('value', update_table)
 cif_input.on_change('value', update_table)
 submitbutton.on_click(submit_form)
-
+submitbutton.js_on_change('button_type', confirm_submission)
+                       
 required_text = Div(text ='* required fields')
+
 
 ## Generate the page
 layout = column(row(column(firstname_input, affiliation_input, structurename_input, type_select, email_input,
-                           remarks_area_input), column(lastname_input, position_input, structureDOI_input, consent_select,
-                                                       Spacer(margin=(0,0,18,0)), cif_input)), row(required_text),
-                                                       row(submitbutton))
+                           remarks_area_input),
+                    column(lastname_input, position_input, structureDOI_input, consent_select,
+                                                       Spacer(margin=(0,0,18,0)), cif_input)), 
+                row(required_text),
+                row(submitbutton))
+
 curdoc().add_root(layout)
 curdoc().title = "Upload"
