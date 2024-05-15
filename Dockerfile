@@ -3,7 +3,7 @@ FROM python:3.8
 # Container vars
 ENV PYTHONPATH /app
 
-RUN curl -sL https://deb.nodesource.com/setup_15.x | bash - 
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - 
 RUN apt-get install -y nodejs
 
 WORKDIR /app
