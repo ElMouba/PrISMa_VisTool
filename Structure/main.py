@@ -7,7 +7,7 @@ import os
 import pandas as pd
 import subprocess
 
-from bokeh.layouts import layout, widgetbox, column, row
+from bokeh.layouts import layout, column, row, widgetbox 
 import bokeh.models as bmd
 from bokeh.io import curdoc
 from jsmol_bokeh_extension import JSMol
@@ -200,5 +200,5 @@ tab = bmd.Panel(child=ly, title=structure_name)
 tabs = bmd.widgets.Tabs(tabs=[tab])
 
 # Put the tabs in the current document for display
-curdoc().title = 'Carbon Capture Applications'
+curdoc().title = 'Structure'
 curdoc().add_root(layout([html, tabs]))
