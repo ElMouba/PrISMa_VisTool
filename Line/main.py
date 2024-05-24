@@ -1,6 +1,7 @@
 ''' Case Study Line Plots '''
 
 import bokeh.models as bmd
+import numpy as np
 import pandas as pd
 import yaml
 import os
@@ -25,15 +26,29 @@ def get_dataset(region, source, process, utility):
     pro = case_yml["Process"][process]
 
     if utility == "w/ Heat Extraction":
-        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + pro + ".csv")
+        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + pro + "-wet.csv")
     else:
-        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + uti + "_" + pro + ".csv")
+        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + uti + "_" + pro + "-wet.csv")
 
     df_kpi = df_kpi_0.drop(to_drop, axis=1)
 
+    df_wrc0 = pd.read_csv("data/Water_" + cas + "-Simulated.csv")
+    df_wrc = df_wrc0.iloc[:, [0, -1]]
+
     df_mat.sort_values(by=['MOF'], inplace=True)
+    df_wrc.sort_values(by=['MOF'], inplace=True)
     df_kpi.sort_values(by=['MOF'], inplace=True)
-    dataset = pd.merge(df_mat, df_kpi, on="MOF")
+    dataset0 = pd.merge(df_mat, df_wrc, on="MOF")
+    dataset = pd.merge(dataset0, df_kpi, on="MOF")
+    dataset.replace([np.inf, -np.inf], np.nan, inplace=True)
+    
+    if cas == "Cement":
+        dataset["LCOE"]=[0]*dataset.shape[0]
+        dataset.dropna(axis=0, inplace=True)
+        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
+    else:
+        dataset.dropna(axis=0, inplace=True)
+        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
 
     return dataset
 
@@ -151,13 +166,10 @@ def update_source(attr, old, new):
     region = region_select.value
     source = source_select.value
 
-    if region == "Switzerland":
+    if region == "Switzerland" or region == "United Kingdom 2022":
         source_select.options = [sources[0], sources[2]]
         if source != "Cement":
             source_select.value = source_select.options[0]
-    elif region == "United Kingdom 2022":
-        source_select.options = [sources[0]]
-        source_select.value = source_select.options[0]
     else:
         source_select.options = sources
 
