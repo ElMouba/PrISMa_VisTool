@@ -28,7 +28,7 @@
   unit: "mol.kg\u207B\xB9"
   order: True
 
-kpi: WRC [-]
+- kpi: WRC [-]
   type: float
   label: "Water Resistance Coefficient"
   unit: "-"

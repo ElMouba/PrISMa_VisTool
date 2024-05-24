@@ -2,6 +2,7 @@
 
 import bokeh.models as bmd
 import pandas as pd
+import numpy as np
 
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
@@ -32,7 +33,17 @@ def get_dataset(region, source, process, utility):
     df_mat.sort_values(by=['MOF'], inplace=True)
     df_wrc.sort_values(by=['MOF'], inplace=True)
     df_kpi.sort_values(by=['MOF'], inplace=True)
-    dataset = pd.merge(df_mat, df_wrc, df_kpi, on="MOF")
+    dataset0 = pd.merge(df_mat, df_wrc, on="MOF")
+    dataset = pd.merge(dataset0, df_kpi, on="MOF")
+    dataset.replace([np.inf, -np.inf], np.nan, inplace=True)
+    
+    if cas == "Cement":
+        dataset["LCOE"]=[0]*dataset.shape[0]
+        dataset.dropna(axis=0, inplace=True)
+        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
+    else:
+        dataset.dropna(axis=0, inplace=True)
+        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
 
     return dataset
 
@@ -92,13 +103,10 @@ def update_source1(attr, old, new):
     region = region1_select.value
     source = source1_select.value
 
-    if region == "Switzerland":
+    if region == "Switzerland" or region == "United Kingdom 2022":
         source1_select.options = [sources[0], sources[2]]
         if source != "Cement":
             source1_select.value = source1_select.options[0]
-    elif region == "United Kingdom 2022":
-        source1_select.options = [sources[0], sources[2]]
-        source1_select.value = source1_select.options[0]
     else:
         source1_select.options = sources
 
@@ -106,13 +114,10 @@ def update_source2(attr, old, new):
     region = region2_select.value
     source = source2_select.value
 
-    if region == "Switzerland":
+    if region == "Switzerland" or region == "United Kingdom 2022":
         source2_select.options = [sources[0], sources[2]]
         if source != "Cement":
             source2_select.value = source2_select.options[0]
-    elif region == "United Kingdom 2022":
-        source2_select.options = [sources[0], sources[2]]
-        source2_select.value = source2_select.options[0]
     else:
         source2_select.options = sources
 
