@@ -187,5 +187,5 @@ ly = row(column(structure_select,
 )
 
 # Put the tabs in the current document for display
-curdoc().title = 'Carbon Capture Applications'
-curdoc().add_root(layout([html, tabs]))
+curdoc().title = 'Structure Visualization'
+curdoc().add_root(layout([html, ly]))
