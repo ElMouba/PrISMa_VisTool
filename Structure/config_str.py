@@ -1,10 +1,10 @@
 import pandas as pd
 
-DATA_FILE = "data/adsorption_data.csv"
+DATA_FILE = "data/datatable.csv"
 df = pd.read_csv(DATA_FILE)
 
 # Structures
-STRUCTURES = sorted(list(set(df["structure"])))
+STRUCTURES = sorted(list(set(df["Label"])))
 
 # Widget width
 WWIDTH = 300
