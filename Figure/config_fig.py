@@ -24,16 +24,16 @@ list_keys = [kpis_yml[i]["kpi"] for i in range(len(kpis_yml))]
 label_keys = [kpis_yml[i]["label"] for i in range(len(kpis_yml))]
 unit_keys = [kpis_yml[i]["unit"] for i in range(len(kpis_yml))]
 df_keys = pd.DataFrame({"KPI": list_keys, "Label": label_keys, "Unit": unit_keys})
-KPI_count = [5, 13, 23]
+KPI_count = [6, 14, 24]
 
 # Default input (region, source, process, xlayer, ylayer, zlayer, xlabel, ylabel, zlabel, xlog, ylog, zlog, material)
 defaults = ['United Kingdom', 'Cement', 'Temperature Swing Adsorption', 'Process', 'Techno-Economics', 'Process', 'Recovery',
             'nCAC', 'Specific Heating Energy', 'linear', 'log', 'linear', 'None', 'w/ Heat Extraction']
 
 # Non-KPIs to drop from the excel file
-to_drop = ['Unnamed: 0', 'product_out', 'n_out_vac', 'rho_b', 'time_steps', 'vac_decay', 'selectivity', 'spec_heat_tot',
-           'spec_cool_tot','spec_power_tot', 'productivity_tea', 'CO2_captured', 'var_OPEX', 'CAPEX_bd', 'OPEX_bd', 'CAC_bd',
-           'power_output_ccs', 'CAC_approx_neg', 'SPECCA_approx_neg']
+to_drop = ['Unnamed: 0', 'purity', 'product_out', 'n_out_vac', 'rho_b', 'time_steps', 'vac_decay', 'selectivity', 'alpha', 'OPEX', 'CCC', 'LCOC',
+           'spec_heat_tot', 'spec_cool_tot','spec_power_tot', 'productivity_tea', 'CO2_captured', 'var_OPEX', 'CAPEX_bd', 'OPEX_bd', 'CAC_bd',
+           'power_output_ccs', 'CAC_approx_neg', 'SPECCA_approx_neg', 'cool_bd', 'power_bd', 'nCAC', 'nCAC_system_bd']
 
 # Plot Variables
 HEIGHT = 600

@@ -9,7 +9,7 @@ import subprocess
 
 from config_str import STRUCTURES, WWIDTH,JSMOL_SCRIPT
 
-from bokeh.layouts import layout, widgetbox, column, row
+from bokeh.layouts import layout, column, row, widgetbox 
 import bokeh.models as bmd
 from bokeh.io import curdoc
 from jsmol_bokeh_extension import JSMol
@@ -188,4 +188,4 @@ ly = row(column(structure_select,
 
 # Put the tabs in the current document for display
 curdoc().title = 'Carbon Capture Applications'
-curdoc().add_root(layout([html, ly]))
+curdoc().add_root(layout([html, tabs]))
