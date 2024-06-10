@@ -7,12 +7,14 @@ import os
 import pandas as pd
 import subprocess
 
+from config_str import STRUCTURES, WWIDTH,JSMOL_SCRIPT
+
 from bokeh.layouts import layout, column, row, widgetbox 
 import bokeh.models as bmd
 from bokeh.io import curdoc
 from jsmol_bokeh_extension import JSMol
 from bokeh.models import ColumnDataSource, TextInput
-from bokeh.models.widgets import DataTable, TableColumn, HTMLTemplateFormatter, StringFormatter, PreText, Button
+from bokeh.models.widgets import DataTable, TableColumn, HTMLTemplateFormatter, StringFormatter, PreText, Button, Select
 
 html = bmd.Div(text=open(join(dirname(__file__), 'description.html')).read(),
                width=800)
@@ -41,7 +43,6 @@ def get_name_from_url():
 
 def table_widget(name):  # disable=redefined-outer-name
     """Create table widget."""
-
 
     FILE = './data/datatable.csv'
     print(os.listdir())
@@ -74,42 +75,33 @@ def table_widget(name):  # disable=redefined-outer-name
 
     return widgetbox(data_table)
 
-def get_cif_content_from_disk(filename):
+def get_cif_content_from_disk(ciffile):
     """ Load CIF content from disk """
-    with open(filename, 'r') as f:
+
+    ciffile =  os.path.join('./data/CIFs', ciffile)
+    if os.path.exists(ciffile):
+        print(f'{ciffile} found!')
+    with open(ciffile, 'r') as f:
         content = f.read()
     return content
 
-structure_name = get_name_from_url()
-
-ciffile = f'{structure_name}.cif'
-ciffile =  os.path.join('./data/CIFs', ciffile)
-if os.path.exists(ciffile):
-    print(f'{ciffile} found!')
-
-cifcontent = get_cif_content_from_disk(ciffile)
-
-info = dict(
+def get_applet(cifcontent):
+    '''Get JSmol applet from cifcontent'''
+    info_new = dict(
         height='100%',
         width='100%',
         serverURL='https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php',
         use='HTML5',
         j2sPath='https://chemapps.stolaf.edu/jmol/jsmol/j2s',
-        script="""
-set antialiasDisplay ON; background white; set displayCellParameters FALSE; set disablePopupMenu FALSE;
-load data "cifstring"
-{}
-end "cifstring"
-    """.format(cifcontent)
+        script=JSMOL_SCRIPT.format(cifcontent)
     )
-
-applet = JSMol(
-    width=500,
-    height=500,
-    script_source=script_source,
-    info=info,
-    #js_url='detail/static/jsmol/JSmol.min.js',
-)
+    return JSMol(
+        width=500,
+        height=500,
+        script_source=script_source,
+        info=info_new,
+        #js_url='detail/static/jsmol/JSmol.min.js',
+    )
 
 def extend_structure(enxtension = [1,1,1]):
     global ciffile
@@ -120,8 +112,9 @@ def extend_structure(enxtension = [1,1,1]):
             enxtension[i] = new
         except:
             pass
+    ciffile =  os.path.join('./data/CIFs', ciffile)
 
-    TEMP = 'temp_cif.cif'
+    TEMP = 'temp_cif.cif' #writes new extended file, reads it back and delete it
     print('running subprocess')
     command = ['manage_crystal', 
                     ciffile, 
@@ -132,73 +125,67 @@ def extend_structure(enxtension = [1,1,1]):
     print(command)
     subprocess.run(command)
 
-    
     with open(f'./{TEMP}', 'r+') as f:
         extended_content = f.read()
-    
     os.remove(TEMP)
 
-    info_new = dict(
-        height='100%',
-        width='100%',
-        serverURL='https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php',
-        use='HTML5',
-        j2sPath='https://chemapps.stolaf.edu/jmol/jsmol/j2s',
-        script="""
-set antialiasDisplay ON; background white; set displayCellParameters FALSE; set disablePopupMenu FALSE;
-load data "cifstring"
-{}
-end "cifstring"
-    """.format(extended_content)
-    )
+    applet = get_applet(extended_content)
 
-    applet_new = JSMol(
-        width=500,
-        height=500,
-        script_source=script_source,
-        info=info_new,
-        #js_url='detail/static/jsmol/JSmol.min.js',
-    )
-
-    ly.children[0].children[0]= applet_new
+    ly.children[2].children[0]= applet
 
     return applet
 
+def new_selected_structure(attr, old, new_structure):
+    global ciffile
+    print(f"{attr} changed from {old} to {new_structure}")
+
+
+    ciffile = f'{new_structure}.cif'
+    cifcontent_new = get_cif_content_from_disk(ciffile)
+
+    applet = get_applet(cifcontent_new)
+
+    ly.children[0].children[1] = table_widget(new_structure)
+
+    ly.children[2].children[0]= applet
+    return applet
+
+
+structure_name = get_name_from_url()
+ciffile = f"{structure_name}.cif"
+cifcontent = get_cif_content_from_disk(ciffile)
+applet = get_applet(cifcontent)
 
 duplicate_btm = bmd.Button(label = 'Enlarge Structure')
 duplicate_btm.on_click(extend_structure)
 
-
-
-
+structure_select = Select(title='Structure', options=STRUCTURES, value=get_name_from_url(), width=WWIDTH)
+structure_select.on_change('value', new_selected_structure)
 
 # Create a text input field with an initial value of 'Default Text' and apply the callback
 x_input = TextInput(value='', title='x:', width = 40)
 y_input = TextInput(value='', title='y:', width = 40)
 z_input = TextInput(value='', title='z:', width = 40)
 
-ly = row(
-        column(
-    applet, 
-    #btn_download_cif, 
-    row(
-        x_input, 
-        y_input, 
-        z_input
-        ), 
-    duplicate_btm
-    ),
-        bmd.Spacer(width = 50),
-        column(
-            table_widget(structure_name), 
+ly = row(column(structure_select,
+            table_widget(structure_name),
             #btn_download_table
-            )
+            ),
+            bmd.Spacer(width = 50),
+        column(
+            applet, 
+            #btn_download_cif, 
+                row(
+                    x_input, 
+                    y_input, 
+                    z_input
+                    ), 
+            duplicate_btm
+    ),
+
+        
 )
 
-# We add this as a tab
-tab = bmd.Panel(child=ly, title=structure_name)
-tabs = bmd.widgets.Tabs(tabs=[tab])
-
 # Put the tabs in the current document for display
-curdoc().title = 'Structure'
+curdoc().title = 'Carbon Capture Applications'
 curdoc().add_root(layout([html, tabs]))
