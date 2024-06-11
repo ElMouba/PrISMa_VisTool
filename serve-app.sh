@@ -3,8 +3,8 @@ set -x
 
 # This script is executed whenever the docker container is (re)started.
 #===============================================================================
-bokeh serve Preset Table Line Figure Adsorption Upload Structure Compare\
-    --port 5006                 \
+bokeh serve Figure Line Structure Preset Upload Adsorption Compare Table\
+    --port 5007                 \
     --log-level debug           \
     --allow-websocket-origin "*" \
     --prefix "$BOKEH_PREFIX" \
