@@ -1,162 +1,236 @@
-{% extends base %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Materials Cloud</title>
+    <meta name="description" content="Materials Cloud platform for materials science research">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="Preset/static/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="Preset/static/css/mcloud_theme.min.css" type="text/css">
+    <script src="Preset/static/js/jquery.min.js" type="text/javascript"></script>
+    <script src="Preset/static/js/bootstrap.min.js" type="text/javascript"></script>
+</head>
+<body>
+    <!-- Plausible Analytics Script -->
+    <script type="text/javascript">
+        var header = document.getElementsByTagName("head")[0];
+        var plausible = document.createElement("script");
+        var domain_name = window.location.hostname;
+        var rollup_name = "plausible-rollup.materialscloud.org";
 
-{% block postamble %}
-  <style>
-    {% include "material.indigo-blue.min.css" %}
-    {% include "style.css" %}
-  </style>
-{% endblock %}
+        plausible.async = "";
+        plausible.defer = "";
+        plausible.dataset["domain"] = domain_name + "," + rollup_name;
+        plausible.src = "https://plausible.io/js/plausible.js";
+        header.appendChild(plausible);
+    </script>
 
-{% block contents %}
-<div class="content" >
-<div class="content-float" >
+    <!-- Application Header -->
+    <div class="mcloud-header header" id="mcloudHeader">
+        <div class="navbar navbar-default navbar-static-top">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button class="navbar-toggle" data-target=".header-collapse" data-toggle="collapse" type="button">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="https://www.materialscloud.org/home">
+                        <img src="Preset/static/images/mcloud_logo.png" alt="Materials Cloud Logo">
+                    </a>
+                </div>
+                <div class="collapse navbar-collapse header-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="https://www.materialscloud.org/learn">LEARN</a></li>
+                        <li class="active"><a href="https://www.materialscloud.org/work">WORK</a></li>
+                        <li><a href="https://www.materialscloud.org/discover">DISCOVER</a></li>
+                        <li><a href="https://www.materialscloud.org/explore">EXPLORE</a></li>
+                        <li><a href="https://www.materialscloud.org/archive">ARCHIVE</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<p>
-  The following page displays a <b> Preset </b> of data visualization options
-</p>
-<p>
-  Click on the <b> option </b> of interest  
-</p>
+    <!-- Main Content -->
+    <div class="mcloud-wrapper">
+        <div class="mcloud-status-bar"></div>
+        <div class="mcloud-message-container"></div>
+        <div class="mcloud-container">
+            <div class="mcloud-page-container">
+                <div class="mcloud-page-content panel panel-default">
+                    <ol class="breadcrumb" style="line-height: 24px;">
+                        <li><a href="https://www.materialscloud.org/work" style="font-weight: 500;">Work</a></li>
+                        <li><a href="https://www.materialscloud.org/work/tools" style="font-weight: 500;">Tools</a></li>
+                        <li><a href="https://www.prisma.hw.ac.uk/" style="font-weight: 500;">PrISMa</a></li>
 
-<!-- Create a class with one row and three columns -->
-<div class="three-column-grid">
-  <!-- Insert the first figure type in the first column-->
-  <div class="grid-item">
-    <figure>
-      <div class="container">
-        <a href="Upload">
-          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Upload_default.png">
-          <div class="hover-text">Upload A Structure</div>
-        </a>
-      </div>
-      <figcaption>
-      </figcaption>
-    </figure>
-  </div>
-  <!-- Insert the second figure type in the second column-->
-  <div class="grid-item">
-    <figure>
-      <div class="container">
-        <a href="https://prisma.hw.ac.uk/"> 
-          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/PrISMa_default.png">
-        </a>
-      </div>
-      <figcaption>
-      </figcaption>
-    </figure>
-  </div>
-  <!-- Insert the third figure type in the third column-->
-  <div class="grid-item">
-    <figure>
-      <div class="container">
-        <a href="Table">
-          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Table_default.png">
-          <div class="hover-text">Database</div>
-        </a>
-      </div>
-      <figcaption>
-      </figcaption>
-    </figure>
-  </div>
-</div>
+                    </ol>
 
-<!-- Create a class with one row and three columns -->
-<div class="three-column-grid">
-  <!-- Insert the first figure type in the first column-->
-  <div class="grid-item">
-    <figure>
-      <div class="container">
-        <a href="Figure">
-          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Figure_default.png">
-          <div class="hover-text">KPIs-3D</div>
-        </a>
-      </div>
-      <figcaption>
-      </figcaption>
-    </figure>
-  </div>
-  <!-- Insert the second figure type in the second column-->
-  <div class="grid-item">
-    <figure>
-      <div class="container">
-        <a href="Line">
-          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Line_default.png">
-          <div class="hover-text">KPIs-Line</div>
-        </a>
-      </div>
-      <figcaption>
-      </figcaption>
-    </figure>
-  </div>
-  <!-- Insert the third figure type in the third column-->
-  <div class="grid-item">
-    <figure>
-      <div class="container">
-        <a href="Adsorption">
-          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Adsorption_default.png">
-          <div class="hover-text">Adsorption Properties</div>
-        </a>
-      </div>
-      <figcaption>
-      </figcaption>
-    </figure>
-  </div>
-</div>
+                    {% extends base %}
 
-<!-- Create a class with one row and three columns -->
-<div class="three-column-grid">
-  <!-- Insert the first figure type in the first column-->
-  <div class="grid-item">
-    <figure>
-      <div class="container">
-        <!--a href="Upload"-->
-          <!--img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Upload_default.png"-->
-          <!--div class="hover-text">Upload A Structure</div-->
-          <!--div class="hover-text">Coming Soon</div-->
-        <!--/a-->
-      </div>
-      <figcaption>
-      </figcaption>
-    </figure>
-  </div>
-  <!-- Insert the second figure type in the second column-->
-  <div class="grid-item">
-    <figure>
-      <div class="container">
-        <a href="Compare"> 
-          <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Compare_default.png">
-          <div class="hover-text">Compare</div>
-        </a>
-      </div>
-      <figcaption>
-      </figcaption>
-    </figure>
-  </div>
-  <!-- Insert the third figure type in the third column-->
-  <div class="grid-item">
-    <figure>
-      <div class="container">
-        <!--a href="Table"-->
-          <!--img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Table_default.png"-->
-          <!--div class="hover-text">Database</div-->
-          <!--div class="hover-text">Coming Soon</div-->
-        <!--/a-->
-      </div>
-      <figcaption>
-      </figcaption>
-    </figure>
-  </div>
-</div>
-
-<img height="150"/>
-<img height="400" />
-
-<img height="150"/>
-<img src="Preset/static/images/Partners.png" width="850" height="85"/>
-<!-- No actual bokeh content to display, but let's keep it here //-->
-{{ super() }}
-
-</div>
-</div>
-
-{% endblock %}
+                    {% block postamble %}
+                      <style>
+                        {% include "material.indigo-blue.min.css" %}
+                        {% include "style.css" %}
+                      </style>
+                    {% endblock %}
+                    
+                    {% block contents %}
+                    <div class="content" >
+                    <div class="content-float" >
+                    
+                    <p>
+                      The following page displays a <b> Preset </b> of data visualization options
+                    </p>
+                    <p>
+                      Click on the <b> option </b> of interest  
+                    </p>
+                    
+                    <!-- Create a class with one row and three columns -->
+                    <div class="three-column-grid">
+                      <!-- Insert the first figure type in the first column-->
+                      <div class="grid-item">
+                        <figure>
+                          <div class="container">
+                            <a href="Upload">
+                              <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Upload_default.png">
+                              <div class="hover-text">Upload A Structure</div>
+                            </a>
+                          </div>
+                          <figcaption>
+                          </figcaption>
+                        </figure>
+                      </div>
+                      <!-- Insert the second figure type in the second column-->
+                      <div class="grid-item">
+                        <figure>
+                          <div class="container">
+                            <a href="https://prisma.hw.ac.uk/"> 
+                              <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/PrISMa_default.png">
+                            </a>
+                          </div>
+                          <figcaption>
+                          </figcaption>
+                        </figure>
+                      </div>
+                      <!-- Insert the third figure type in the third column-->
+                      <div class="grid-item">
+                        <figure>
+                          <div class="container">
+                            <a href="Table">
+                              <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Table_default.png">
+                              <div class="hover-text">Database</div>
+                            </a>
+                          </div>
+                          <figcaption>
+                          </figcaption>
+                        </figure>
+                      </div>
+                    </div>
+                    
+                    <!-- Create a class with one row and three columns -->
+                    <div class="three-column-grid">
+                      <!-- Insert the first figure type in the first column-->
+                      <div class="grid-item">
+                        <figure>
+                          <div class="container">
+                            <a href="Figure">
+                              <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Figure_default.png">
+                              <div class="hover-text">KPIs-3D</div>
+                            </a>
+                          </div>
+                          <figcaption>
+                          </figcaption>
+                        </figure>
+                      </div>
+                      <!-- Insert the second figure type in the second column-->
+                      <div class="grid-item">
+                        <figure>
+                          <div class="container">
+                            <a href="Line">
+                              <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Line_default.png">
+                              <div class="hover-text">KPIs-Line</div>
+                            </a>
+                          </div>
+                          <figcaption>
+                          </figcaption>
+                        </figure>
+                      </div>
+                      <!-- Insert the third figure type in the third column-->
+                      <div class="grid-item">
+                        <figure>
+                          <div class="container">
+                            <a href="Adsorption">
+                              <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Adsorption_default.png">
+                              <div class="hover-text">Adsorption Properties</div>
+                            </a>
+                          </div>
+                          <figcaption>
+                          </figcaption>
+                        </figure>
+                      </div>
+                    </div>
+                    
+                    <!-- Create a class with one row and three columns -->
+                    <div class="three-column-grid">
+                      <!-- Insert the first figure type in the first column-->
+                      <div class="grid-item">
+                        <figure>
+                          <div class="container">
+                            <a href="Compare"> 
+                              <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Compare_default.png">
+                              <div class="hover-text">Compare</div>
+                            </a>
+                          </div>
+                          <figcaption>
+                          </figcaption>
+                        </figure>
+                      </div>
+                      <!-- Insert the second figure type in the second column-->
+                      <div class="grid-item">
+                        <figure>
+                          <div class="container">
+                            <!--a href="Table"-->
+                              <!--img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Table_default.png"-->
+                              <!--div class="hover-text">Database</div-->
+                              <!--div class="hover-text">Coming Soon</div-->
+                            <!--/a-->
+                          </div>
+                          <figcaption>
+                          </figcaption>
+                        </figure>
+                      </div>
+                      <!-- Insert the third figure type in the third column-->
+                      <div class="grid-item">
+                        <figure>
+                          <div class="container">
+                            <a href="Structure"> 
+                              <img class="figure-thumbnail mdl-card mdl-shadow--2dp main-card" src="Preset/static/images/Structure_default.png">
+                              <div class="hover-text">Visualize A Structure</div>
+                            </a>
+                          </div>
+                          <figcaption>
+                          </figcaption>
+                        </figure>
+                      </div>
+                    </div>
+                    
+                    <img height="150"/>
+                    <img height="400" />
+                    
+                    <img height="150"/>
+                    <img src="Preset/static/images/Partners.png" width="850" height="85"/>
+                    <!-- No actual bokeh content to display, but let's keep it here //-->
+                    {{ super() }}
+                    
+                    </div>
+                    </div>
+                    
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

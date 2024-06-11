@@ -19,7 +19,7 @@ from bokeh.models.widgets import DataTable, TableColumn, HTMLTemplateFormatter, 
 html = bmd.Div(text=open(join(dirname(__file__), 'description.html')).read(),
                width=800)
 
-download_js = open(join(dirname(__file__), 'static', 'download.js')).read()
+download_js = open(join(dirname(__file__), 'static','js', 'download.js')).read()
 
 script_source = bmd.ColumnDataSource()
 

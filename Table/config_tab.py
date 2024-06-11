@@ -12,5 +12,7 @@ HEADER_ORDER = ['Label', 'Source', 'Formula', 'Density (g.cm⁻³)','PLD (Å)',
 
 SORTING_OPTIONS = ['Source', 'Formula', 'Density (g.cm⁻³)','PLD (Å)', 'Cp (J.g⁻¹.K⁻¹)']
 
+TABLE_HEIGHT = 400
+
 # Widget width
 WWIDTH = 200
