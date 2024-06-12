@@ -105,25 +105,29 @@ def get_applet(cifcontent):
 
 def extend_structure(enxtension = [1,1,1]):
     global ciffile
-    print(x_input.value)
     for i, ax in enumerate([x_input.value, y_input.value, z_input.value]):
         try:
             new = int(ax)
             enxtension[i] = new
         except:
             pass
-    ciffile =  os.path.join('./data/CIFs', ciffile)
+    print(f"New values: {x_input.value, y_input.value, z_input.value}")
+
+    ciffile_new =  os.path.join('./data/CIFs', ciffile)
 
     TEMP = 'temp_cif.cif' #writes new extended file, reads it back and delete it
     print('running subprocess')
     command = ['manage_crystal', 
-                    ciffile, 
+                    ciffile_new, 
                     f'-x {enxtension[0]}',
                     f'-y {enxtension[1]}',
                     f'-z {enxtension[2]}',
                     f'-o{TEMP}']
     print(command)
     subprocess.run(command)
+
+    if not os.path.exists(TEMP):
+        print(f'{TEMP} file not found. Current files in working directory: {os.listdir()}')
 
     with open(f'./{TEMP}', 'r+') as f:
         extended_content = f.read()
@@ -187,5 +191,5 @@ ly = row(column(structure_select,
 )
 
 # Put the tabs in the current document for display
-curdoc().title = 'Carbon Capture Applications'
+curdoc().title = 'PrISMa - Structure'
 curdoc().add_root(layout([html, ly]))
