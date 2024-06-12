@@ -178,7 +178,7 @@ table_data, plot_data = get_dataset(get_name_from_url(), defaults[1])
 
 ## Make the table
 columns = [TableColumn(field='henry',title='Henry Regime Properties',formatter=StringFormatter(text_align="center"))]
-table = DataTable(source=table_data, columns=columns, width=250, header_row=False, index_position=None)
+table = DataTable(source=table_data, columns=columns, width=250, height = 150, header_row=False, index_position=None)
      
 for w in [structure_select, molecule_select, ylabel_select]:
     w.on_change('value', update_plot)
