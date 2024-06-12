@@ -61,3 +61,10 @@ HELPS_EXTRA = {'CaseStudies': 'https://www.youtube.com/watch?v=hoTej9Ls4S8',
                'KPIs_TEA': 'https://www.youtube.com/watch?v=U33Vyb4WJNU',
                'KPIs_LCA': 'https://www.youtube.com/watch?v=bPx_LMAdIgA'
                }
+
+JSMOL_SCRIPT ="""
+set antialiasDisplay ON; background white; set displayCellParameters FALSE; set disablePopupMenu FALSE;
+load data "cifstring"
+{}
+end "cifstring"
+    """

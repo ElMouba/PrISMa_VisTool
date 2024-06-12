@@ -213,6 +213,24 @@ def get_cif_content_from_disk(filename):
         content = f.read()
     return content
 
+def get_applet(cifcontent):
+    '''Get JSmol applet from cifcontent'''
+    script_source_new = ColumnDataSource()
+    info_new = dict(
+        height='100%',
+        width='100%',
+        serverURL='https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php',
+        use='HTML5',
+        j2sPath='https://chemapps.stolaf.edu/jmol/jsmol/j2s',
+        script=JSMOL_SCRIPT.format(cifcontent)
+    )
+    return JSMol(
+        width=300,
+        height=300,
+        script_source=script_source_new,
+        info=info_new,
+        #js_url='detail/static/jsmol/JSmol.min.js',
+    )
 
 ## Initialize the dictionaries
 labels = {label_keys[i]:list_keys[i] for i in range(len(list_keys))}
@@ -267,28 +285,9 @@ def run_script(attr, old, new):
 
     cifcontent_new = get_cif_content_from_disk(ciffile)
     """Run JSMol script specified by user."""
-    script_source_new = ColumnDataSource()
 
-    info_new = dict(
-        height='100%',
-        width='100%',
-        serverURL='https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php',
-        use='HTML5',
-        j2sPath='https://chemapps.stolaf.edu/jmol/jsmol/j2s',
-        script="""
-set antialiasDisplay ON; background white; set displayCellParameters FALSE; set disablePopupMenu FALSE;
-load data "cifstring"
-{}
-end "cifstring"
-    """.format(cifcontent_new)
-    )
-    applet_new = JSMol(
-        width=400,
-        height=400,
-        script_source=script_source_new,
-        info=info_new,
-    )
-
+    applet_new = get_applet(cifcontent_new)
+    
     nameDisplay.text = f'<h2><a href=Structure?name={cifname} target="_blank">{cifname}</a></h2>'
 
     layout.children[0].children[3].children[4]= applet_new
@@ -325,7 +324,7 @@ helps = column(help_case, Spacer(height = 80),
 layout = column(row(helps, controls, 
                     column(make_plot(plot_data, defaults[3], defaults[4], defaults[5], defaults[6], defaults[7],
                                                df_keys, defaults[8], TOP)), 
-                    column(material_select, kpi_select, Spacer(height = 250), nameDisplay, applet)))
+                    column(material_select, kpi_select, Spacer(height = 100), nameDisplay, applet)))
 
 curdoc().add_root(layout)
 curdoc().title = "KPI-Line"
