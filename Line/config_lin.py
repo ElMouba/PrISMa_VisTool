@@ -26,9 +26,9 @@ df_keys = pd.DataFrame({"KPI": list_keys, "Label": label_keys, "Unit": unit_keys
 KPI_count = [5, 13, 23]
 
 # Default input (region, source, process, xlayer, ylayer, zlayer, xlabel, ylabel, zlabel, xlog, ylog, zlog, material)
-defaults = ['United Kingdom', 'Cement', 'Temperature Swing Adsorption', ['Henry Selectivity'], ['Purity', 'Productivity'],
+DEFAULTS = ['United Kingdom', 'Cement', 'Temperature Swing Adsorption', ['Henry Selectivity'], ['Purity', 'Productivity'],
             ['nCAC'], ['Climate Change', 'Material Resources: Metals/Minerals'], [], 'None', 'w/ Heat Extraction']
-kpis = ["None"] + defaults[3] + defaults[4] + defaults[5] + defaults[6]
+kpis = ["None"] + DEFAULTS[3] + DEFAULTS[4] + DEFAULTS[5] + DEFAULTS[6]
 TOP = 10
 
 # Non-KPIs to drop from the excel file

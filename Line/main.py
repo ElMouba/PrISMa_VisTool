@@ -79,15 +79,45 @@ def prep_data_plot(data_source, wlabel, xlabel, ylabel, zlabel, df_keys, top):
     return {"MOF":MOFs, "X":x, "Y":y}, top_str 
 
 # A standard script for bokeh plotting
-def make_plot(data_source, wlabel, xlabel, ylabel, zlabel, material, df_keys, kpi, top):
+def make_plot(data_source:pd.DataFrame, matKPIsLabels:list, procKPIsLabels:list, teKPIsLabels:list, lcaKPIsLabels:list, material:list, df_keys:pd.DataFrame, kpi:str, top:int = 10):
     # source of the data
-    source_data = prep_data_plot(data_source, wlabel, xlabel, ylabel, zlabel, df_keys, top)[0]
-    structures = prep_data_plot(data_source, wlabel, xlabel, ylabel, zlabel, df_keys, top)[1]
+    """Standard script for bokeh plotting
+    
+    Parameters: 
+    -----------
+    data_source: pd.DataFrame
+        data to plot
+
+    matKPIsLabels: list
+        list of material KPIs to display
+
+    procKPIsLabels: list
+        list of process KPIs to display
+
+    teKPIsLabels:list 
+        list of techno-economic KPIs to display
+    
+    lcaKPIsLabels:list
+        list of lca KPIs to display
+    
+    material: list
+        selected materials to highlight in blue on the plot
+    
+    df_keys: pd.Dataframe
+        dataframe containing all the KPIs (columns: KPI, Label, Unit, Order)
+    
+    kpi:str
+        selected KPI of interest; top 10 will be indicated in red
+    
+    top: int, default: 10
+        n top materials to display for a given KP of interest
+    """
+    source_data, structures = prep_data_plot(data_source, matKPIsLabels, procKPIsLabels, teKPIsLabels, lcaKPIsLabels, df_keys, top)
 
     source = bmd.ColumnDataSource(data=source_data)
     hover = bmd.HoverTool(tooltips= [("MOF", "@MOF")])
 
-    label_tot = wlabel + xlabel + ylabel + zlabel
+    label_tot = matKPIsLabels + procKPIsLabels + teKPIsLabels + lcaKPIsLabels
     label_full = [i + " (" + df_keys["Unit"][df_keys["Label"]==i].iloc[0] + ")" for i in label_tot]
     xticker = [i+1 for i in range(len(label_tot))]
     
@@ -125,7 +155,7 @@ def make_plot(data_source, wlabel, xlabel, ylabel, zlabel, material, df_keys, kp
     p.multi_line("X", "Y", source=source, color = "gray", line_width=DATA_SIZE, alpha=0.05)
     p.y_range.flipped = True
     source_label = ColumnDataSource(data=dict(xval=x_val,yval=y_val,labelval=label_val))
-    labels = LabelSet(x='xval', y= 'yval', x_offset=-20, text='labelval', source=source_label, text_font_size="7pt", text_color="black")
+    labels = LabelSet(x='xval', y= 'yval', x_offset=-20, text='labelval', source=source_label, text_font_size="7pt", text_color="black") #adding names of the selected MOFs
     p.add_layout(labels)
 
     help_button_width = 50
@@ -192,23 +222,30 @@ def update_utility(attr, old, new):
 # Update the plot given the different options
 def update_plot(attrname, old, new):
     print("\nUPDATING PLOT")
-    print(attrname, old, new)
+
     regionval = region_select.value
     sourceval = source_select.value
     utilityval = utility_select.value
     processval = process_select.value
-    wlabelval = wlabel_select.value
-    xlabelval = xlabel_select.value
-    ylabelval = ylabel_select.value
-    zlabelval = zlabel_select.value
+
+    mat_kpis_val = mat_kpis.value
+    proc_kpis_val = proc_kpis.value
+    te_kpis_val = te_kpis.value
+    lca_kpis_val = lca_kpis.value
+
     materialval = material_select.value
 
-    kpi_select.options = ["None"] + wlabelval + xlabelval + ylabelval + zlabelval
+    kpi_select.options = ["None"] + mat_kpis_val + proc_kpis_val + te_kpis_val + lca_kpis_val
     kpival = kpi_select.value
 
     src = get_dataset(regionval, sourceval, processval, utilityval)
     plot_data.update(src)
-    layout.children[0].children[2] = make_plot(plot_data, wlabelval, xlabelval, ylabelval, zlabelval, materialval, df_keys, kpival, TOP)
+    layout.children[0].children[2] = make_plot(plot_data, mat_kpis_val, proc_kpis_val, te_kpis_val, lca_kpis_val, materialval, df_keys, kpival, TOP)
+
+    if attrname != 'fromStructures':
+        tabs = Update_structureTabs(CURRENT_STRUCTURES)
+        layout.children[0].children[3].children[3].tabs = tabs
+    
 
 
 def get_cif_content_from_disk(filename):
@@ -236,36 +273,6 @@ def get_applet(cifcontent):
         #js_url='detail/static/jsmol/JSmol.min.js',
     )
 
-## Initialize the dictionaries
-labels = {label_keys[i]:list_keys[i] for i in range(len(list_keys))}
-materials = list(get_dataset(defaults[0], defaults[1], defaults[2], defaults[9])["MOF"])
-
-## Initialize the select column
-region_select = Select(title='Region', options=regions, value=defaults[0], width=WWIDTH)
-source_select = Select(title='Source', options=sources, value=defaults[1], width=WWIDTH)
-utility_select = Select(title='Utility', visible=False, value=defaults[9], width=WWIDTH)
-process_select = Select(title='Process Type', options=processes, value=defaults[2], width=WWIDTH)
-wlabel_select = MultiChoice(title="Material KPIs", options=list(labels.keys())[:KPI_count[0]], value=defaults[3], width=WWIDTH)
-xlabel_select = MultiChoice(title="Process KPIs", options=list(labels.keys())[KPI_count[0]:KPI_count[1]], value=defaults[4], width=WWIDTH)
-ylabel_select = MultiChoice(title="Techno-Economic KPIs", options=list(labels.keys())[KPI_count[1]:KPI_count[2]], value=defaults[5], width=WWIDTH)
-zlabel_select = MultiChoice(title="Life Cycle Assessment KPIs", options=list(labels.keys())[KPI_count[2]:], value=defaults[6], width=WWIDTH)
-material_select = MultiChoice(title='Structure(s) of Interest', options=materials, value=defaults[7], width=WWIDTH)
-kpi_select = Select(title='KPI of Interest', options=kpis, value=defaults[8], width=WWIDTH)
-
-## Get the initial plot data
-plot_data = get_dataset(defaults[0], defaults[1], defaults[2], defaults[9])
-
-controls = column(region_select, source_select, utility_select, process_select, wlabel_select, xlabel_select, ylabel_select,
-                  zlabel_select)
-
-## Dynamic changes to the layout
-region_select.on_change('value', update_source)
-for widget in [region_select, source_select]:
-    widget.on_change('value', update_utility)
-
-# Chnages to plot
-
-
 def on_structure_change(attr, old, new):
     if len(new) == 0:
         layout.children[0].children[3].children[3].visible = False
@@ -277,7 +284,7 @@ def on_structure_change(attr, old, new):
     print(f"The list is changed from {old} to {new}")
     tabs = Update_structureTabs(CURRENT_STRUCTURES)
     layout.children[0].children[3].children[3].tabs = tabs
-
+    update_plot('fromStructures', None, None)
 
 def create_LinkedButton(url:str, width = 25, height = 30):
     button = Button(label = 'video', width = width, height = height)
@@ -285,7 +292,6 @@ def create_LinkedButton(url:str, width = 25, height = 30):
 
     button.js_on_click(CustomJS(code=js_code))
     return button
-
 
 def create_tabPanel(structureName:str):
     cifname= structureName
@@ -327,7 +333,6 @@ def Update_structureTabs(structures_names:list, focusTab = None):
         tabs.append(panel)
     return tabs
 
-
 def on_tab_change(attr, old, new):
     print(f'Tab changed from {old} to {new}')
     if new == 0:
@@ -350,6 +355,32 @@ def on_tab_change(attr, old, new):
     
     
 ### Lay out ###
+## Initialize the dictionaries
+labels = {label_keys[i]:list_keys[i] for i in range(len(list_keys))}
+materials = list(get_dataset(DEFAULTS[0], DEFAULTS[1], DEFAULTS[2], DEFAULTS[9])["MOF"])
+
+## Initialize the select column
+region_select = Select(title='Region', options=regions, value=DEFAULTS[0], width=WWIDTH)
+source_select = Select(title='Source', options=sources, value=DEFAULTS[1], width=WWIDTH)
+utility_select = Select(title='Utility', visible=False, value=DEFAULTS[9], width=WWIDTH)
+process_select = Select(title='Process Type', options=processes, value=DEFAULTS[2], width=WWIDTH)
+mat_kpis = MultiChoice(title="Material KPIs", options=list(labels.keys())[:KPI_count[0]], value=DEFAULTS[3], width=WWIDTH)
+proc_kpis = MultiChoice(title="Process KPIs", options=list(labels.keys())[KPI_count[0]:KPI_count[1]], value=DEFAULTS[4], width=WWIDTH)
+te_kpis = MultiChoice(title="Techno-Economic KPIs", options=list(labels.keys())[KPI_count[1]:KPI_count[2]], value=DEFAULTS[5], width=WWIDTH)
+lca_kpis = MultiChoice(title="Life Cycle Assessment KPIs", options=list(labels.keys())[KPI_count[2]:], value=DEFAULTS[6], width=WWIDTH)
+material_select = MultiChoice(title='Structure(s) of Interest', options=materials, value=DEFAULTS[7], width=WWIDTH)
+kpi_select = Select(title='KPI of Interest', options=kpis, value=DEFAULTS[8], width=WWIDTH)
+
+## Get the initial plot data
+plot_data = get_dataset(DEFAULTS[0], DEFAULTS[1], DEFAULTS[2], DEFAULTS[9])
+
+controls = column(region_select, source_select, utility_select, process_select, mat_kpis, proc_kpis, te_kpis,
+                  lca_kpis)
+
+## Dynamic changes to the layout
+region_select.on_change('value', update_source)
+for widget in [region_select, source_select]:
+    widget.on_change('value', update_utility)
 
 applet = Spacer(height = 5)
 
@@ -371,19 +402,19 @@ helps = column(help_case, Spacer(height = 80),
                help_KPI_TEA, Spacer(height = 40), 
                help_KPI_LCA)
 
-for w in [region_select, source_select, utility_select, process_select, wlabel_select, xlabel_select, ylabel_select,
-          zlabel_select, material_select, kpi_select]:
-    #w.on_change('value', update_plot)
+for w in [region_select, source_select, utility_select, process_select, mat_kpis, proc_kpis, te_kpis,
+          lca_kpis, kpi_select]:
+    w.on_change('value', update_plot)
     pass
-kpi_select.on_change('value', update_plot)
+
 material_select.on_change('value', on_structure_change)
 
 ## Generate the page
 
 layout = column(row(helps, 
                     controls, 
-                    column(make_plot(plot_data, defaults[3], defaults[4], defaults[5], defaults[6], defaults[7],
-                                               df_keys, defaults[8], TOP)
+                    column(make_plot(plot_data, DEFAULTS[3], DEFAULTS[4], DEFAULTS[5], DEFAULTS[6], DEFAULTS[7],
+                                               df_keys, DEFAULTS[8], TOP)
                             ), 
                     column(material_select, 
                            kpi_select, 
