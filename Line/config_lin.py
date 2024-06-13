@@ -68,3 +68,5 @@ load data "cifstring"
 {}
 end "cifstring"
     """
+
+CURRENT_STRUCTURES = []

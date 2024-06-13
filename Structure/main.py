@@ -187,7 +187,7 @@ ly = row(column(structure_select,
             duplicate_btm
     ),
 
-        
+
 )
 
 # Put the tabs in the current document for display

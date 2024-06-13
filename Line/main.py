@@ -113,6 +113,8 @@ def make_plot(data_source, wlabel, xlabel, ylabel, zlabel, material, df_keys, kp
             y_val.append(source.data["Y"][i][0])
             label_val.append(list(source.data["MOF"])[i])
 
+
+
     p.ygrid.visible = False
     p.xaxis.ticker = xticker
     p.yaxis.ticker = [1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
@@ -189,6 +191,7 @@ def update_utility(attr, old, new):
 
 # Update the plot given the different options
 def update_plot(attrname, old, new):
+    print("\nUPDATING PLOT")
     print(attrname, old, new)
     regionval = region_select.value
     sourceval = source_select.value
@@ -202,10 +205,11 @@ def update_plot(attrname, old, new):
 
     kpi_select.options = ["None"] + wlabelval + xlabelval + ylabelval + zlabelval
     kpival = kpi_select.value
-    
+
     src = get_dataset(regionval, sourceval, processval, utilityval)
     plot_data.update(src)
     layout.children[0].children[2] = make_plot(plot_data, wlabelval, xlabelval, ylabelval, zlabelval, materialval, df_keys, kpival, TOP)
+
 
 def get_cif_content_from_disk(filename):
     """ Load CIF content from disk """
@@ -258,47 +262,22 @@ controls = column(region_select, source_select, utility_select, process_select, 
 region_select.on_change('value', update_source)
 for widget in [region_select, source_select]:
     widget.on_change('value', update_utility)
-wlabel_select.js_on_change('value', CustomJS(code="""console.log('multi_choice: value=' + this.value, this.toString())"""))
-xlabel_select.js_on_change('value', CustomJS(code="""console.log('multi_choice: value=' + this.value, this.toString())"""))
-ylabel_select.js_on_change('value', CustomJS(code="""console.log('multi_choice: value=' + this.value, this.toString())"""))
-zlabel_select.js_on_change('value', CustomJS(code="""console.log('multi_choice: value=' + this.value, this.toString())"""))
-material_select.js_on_change('value', CustomJS(code="""console.log('multi_choice: value=' + this.value, this.toString())"""))
 
 # Chnages to plot
-for w in [region_select, source_select, utility_select, process_select, wlabel_select, xlabel_select, ylabel_select,
-          zlabel_select, material_select, kpi_select]:
-    w.on_change('value', update_plot)
-
-#### JSMOL ###
-def run_script(attr, old, new):
-    if not new:
-        print(new)
-        layout.children[0].children[3].children[4]= Spacer(height = 5)
-        nameDisplay.text = ''
-        return
-    print(f'Changing jmol to {new}')
-    cifname= new[-1]
-    ciffile = f'{cifname}.cif'
-    ciffile =  os.path.join('./data/CIFs', ciffile)
-    if os.path.exists(ciffile):
-        print(f'{ciffile} found!')
-
-    cifcontent_new = get_cif_content_from_disk(ciffile)
-    """Run JSMol script specified by user."""
-
-    applet_new = get_applet(cifcontent_new)
-    
-    nameDisplay.text = f'<h2><a href=Structure?name={cifname} target="_blank">{cifname}</a></h2>'
-
-    layout.children[0].children[3].children[4]= applet_new
-    print(applet.__dict__)
 
 
+def on_structure_change(attr, old, new):
+    if len(new) == 0:
+        layout.children[0].children[3].children[3].visible = False
+    else:
+        layout.children[0].children[3].children[3].visible = True
 
-applet = Spacer(height = 5)
-nameDisplay = Div(text= '', align = 'center')
+    global CURRENT_STRUCTURES
+    CURRENT_STRUCTURES = new[::-1]
+    print(f"The list is changed from {old} to {new}")
+    tabs = Update_structureTabs(CURRENT_STRUCTURES)
+    layout.children[0].children[3].children[3].tabs = tabs
 
-material_select.on_change('value', run_script)
 
 def create_LinkedButton(url:str, width = 25, height = 30):
     button = Button(label = 'video', width = width, height = height)
@@ -306,6 +285,77 @@ def create_LinkedButton(url:str, width = 25, height = 30):
 
     button.js_on_click(CustomJS(code=js_code))
     return button
+
+
+def create_tabPanel(structureName:str):
+    cifname= structureName
+    ciffile = f'{cifname}.cif'
+    ciffile =  os.path.join('./data/CIFs', ciffile)
+    if os.path.exists(ciffile):
+        print(f'\t{ciffile} found!')
+    else:
+        return
+    cifcontent_new = get_cif_content_from_disk(ciffile)
+
+    applet_new = get_applet(cifcontent_new)
+    nameDisplay = Div(text= f'<p><a href=Structure?name={cifname} target="_blank">{cifname}</a></p>',
+                        align = 'center',
+                        )
+    tab_col = column(nameDisplay, applet_new)
+    panel = bmd.Panel(child = tab_col, title = structureName)
+    return panel
+
+def Update_structureTabs(structures_names:list, focusTab = None):
+    '''
+    create a list of tabs to display
+
+    Parameters:
+    -----------
+    structures_names: list of strings
+            list of structure names
+    '''
+    global layout
+    tabs = []
+    for i, structure in enumerate(structures_names):
+        if i == 0:
+            print(f'Creating Display pannel for {i, structure}')
+            panel = create_tabPanel(structure)
+        else:
+            print(f'Creating Dummy pannel for {i, structure}')
+            panel =bmd.Panel(child = Spacer(height= 2), title = structure)
+
+        tabs.append(panel)
+    return tabs
+
+
+def on_tab_change(attr, old, new):
+    print(f'Tab changed from {old} to {new}')
+    if new == 0:
+        print('New value is 0 so no action needed.')
+        return
+    global CURRENT_STRUCTURES
+    print(CURRENT_STRUCTURES)
+
+    new_strucutre = CURRENT_STRUCTURES.pop(new)
+    print(f'New structure display: {new_strucutre}')
+    CURRENT_STRUCTURES.insert(0, new_strucutre)
+
+    print(f'New order of Structures: {CURRENT_STRUCTURES}')
+    
+    tabs = Update_structureTabs(CURRENT_STRUCTURES)
+    layout.children[0].children[3].children[3].tabs = tabs
+
+    layout.children[0].children[3].children[3].active = 0
+
+    
+    
+### Lay out ###
+
+applet = Spacer(height = 5)
+
+tab  =bmd.Panel(child = Spacer(height= 2), title = 'nan')
+tabs_structure = bmd.widgets.Tabs(tabs=[tab], visible = False)
+tabs_structure.on_change('active', on_tab_change)
 
 help_case = create_LinkedButton(HELPS_EXTRA['CaseStudies'])
 help_process = create_LinkedButton(HELPS_EXTRA['TVSA'])
@@ -320,11 +370,28 @@ helps = column(help_case, Spacer(height = 80),
                help_KPI_pro, Spacer(height = 55), 
                help_KPI_TEA, Spacer(height = 40), 
                help_KPI_LCA)
+
+for w in [region_select, source_select, utility_select, process_select, wlabel_select, xlabel_select, ylabel_select,
+          zlabel_select, material_select, kpi_select]:
+    #w.on_change('value', update_plot)
+    pass
+kpi_select.on_change('value', update_plot)
+material_select.on_change('value', on_structure_change)
+
 ## Generate the page
-layout = column(row(helps, controls, 
+
+layout = column(row(helps, 
+                    controls, 
                     column(make_plot(plot_data, defaults[3], defaults[4], defaults[5], defaults[6], defaults[7],
-                                               df_keys, defaults[8], TOP)), 
-                    column(material_select, kpi_select, Spacer(height = 100), nameDisplay, applet)))
+                                               df_keys, defaults[8], TOP)
+                            ), 
+                    column(material_select, 
+                           kpi_select, 
+                           Spacer(height = 100), 
+                           tabs_structure
+                            )
+                    )
+                )
 
 curdoc().add_root(layout)
 curdoc().title = "KPI-Line"
