@@ -104,7 +104,7 @@ def create_table(dataframe:pd.DataFrame) -> bmd.DataTable:
     data_table = bmd.DataTable(source=source,
                            columns=bokeh_columns,
                            width=1500,
-                           height=570,
+                           height=TABLE_HEIGHT,
                            background = '#aaadad',
                            index_position=None,
                            autosize_mode= 'force_fit',

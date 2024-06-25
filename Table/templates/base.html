@@ -1,0 +1,16 @@
+<!-- dummy2/templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Bokeh Application{% endblock %}</title>
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.3.min.js"></script>
+    {% block preamble %}{% endblock %}
+</head>
+<body>
+    <div class="main">
+        {% block contents %}{% endblock %}
+    </div>
+    {% block postamble %}{% endblock %}
+</body>
+</html>
