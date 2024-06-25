@@ -1,15 +1,14 @@
 ''' User input script '''
-
+import base64
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Spacer, FileInput, ColumnDataSource, Select, TextInput, TextAreaInput, DataTable, TableColumn
-from bokeh.models import TextInput, CustomJS, Button, Div
-from config_upl import *
-
-import base64
+from bokeh.models import CustomJS, Button, Div, Spacer, FileInput, ColumnDataSource, Select, TextInput, TextAreaInput, DataTable, TableColumn
 import datetime
-
 import json
+import os
+
+from config_upl import *
+from submit import sendConfirmationEmail
 
 ## All input data needed
 firstname_input = TextInput(value="", title="First Name*", width=WWIDTH)
@@ -145,6 +144,8 @@ def extract_cifcontent():
     return cif_name, cif_content, base_name
                        
 def submit_form():
+    print('Submitting form')
+
     log_messag = {"frontendSubmission":
             {
                 'success': True,
@@ -156,7 +157,7 @@ def submit_form():
     
     form = extracting_form()
     for required in REQUIRED_FIELDS:
-        if form[required] == None:
+        if form[required] is None:
 
             print("Please fill in the required fields")
             submitbutton.button_type = 'danger'
@@ -169,23 +170,29 @@ def submit_form():
 
     try:
         time_string = form['SubmissionTime'].replace('-', '').replace(' ', '_').replace(':', '')
+        if not os.path.exists(SHARED_FOLDER):
+            os.mkdir(SHARED_FOLDER)
         shared_folder_path = "{}/{}_{}_uploaded.json".format(SHARED_FOLDER, time_string, form['CifBaseName'])
         with open(shared_folder_path, "w") as file:
             json.dump(form, file)
 
     except Exception as e:
-        log_messag['frontendSubmission'] = { "success": False, "error":{
+        log_messag['frontendSubmission'] = { "success": False, 
+                                            "error":{
             "exception_type": type(e).__name__,
             "message": str(e),
         }}
 
     print(log_messag)
+    email_succes = sendConfirmationEmail(form)
+    if not email_succes:
+        print('Error in sending confirmation email(s).')
     return log_messag
 
 confirm_submission = CustomJS(args=dict(button=submitbutton, type = 'primary', millisec = 1000), code="""
     setTimeout(function() {
     if (button.button_type == 'success') {
-        alert('Thanks for submitting a structure to the platform. We will come back to you when the calculations are done.');        
+        alert('Thanks for submitting a structure to the PrISMA platform. We will come back to you when the calculations are done.');        
         window.location.reload();      
     }
 }, millisec);
