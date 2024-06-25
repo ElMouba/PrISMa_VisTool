@@ -28,7 +28,13 @@
   unit: "mol.kg\u207B\xB9"
   order: True
 
-- kpi: 'purity'
+- kpi: WRC [-]
+  type: float
+  label: "Water Resistance Coefficient"
+  unit: "-"
+  order: False
+
+- kpi: 'purity_c'
   type: float
   label: 'Purity'
   unit: '%'
@@ -82,7 +88,7 @@
   unit: "M\u20AC"
   order: True
 
-- kpi: 'OPEX'
+- kpi: 'OPEX_system'
   type: integer
   label: 'OPEX'
   unit: "M\u20AC"
@@ -94,19 +100,19 @@
   unit: "\u20AC.tonne\u207B\xB9"
   order: True
 
-- kpi: 'nCAC'
+- kpi: 'nCAC_system'
   type: integer
   label: 'nCAC'
   unit: "\u20AC.tonne\u207B\xB9"
   order: True
 
-- kpi: 'LCOC'
+- kpi: 'LCOC_system'
   type: integer
   label: 'LCOC'
   unit: "\u20AC.tonne\u207B\xB9"
   order: True
 
-- kpi: 'CCC'
+- kpi: 'CCC_system'
   type: integer
   label: 'CCC'
   unit: "\u20AC.tonne\u207B\xB9"

@@ -1,17 +1,14 @@
 ''' Case Study 3D Plots '''
 
-import bokeh.models as bmd
-import numpy as np
 import pandas as pd
-import yaml
+import numpy as np
 
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Title, OpenURL, TapTool, Select, TextInput, Paragraph
+from bokeh.models import Title, OpenURL, TapTool, Select, TextInput, Paragraph, ColumnDataSource, HoverTool, LinearColorMapper, ColorBar
 from bokeh.palettes import Turbo256
 from bokeh.plotting import figure
 from config_fig import *
-from os.path import dirname, join
 
 ## Functions needed
 # Use the user options to extract the required data
@@ -23,15 +20,29 @@ def get_dataset(region, source, process, utility):
     pro = case_yml["Process"][process]
 
     if utility == "w/ Heat Extraction":
-        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + pro + ".csv")
+        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + pro + "-wet.csv")
     else:
-        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + uti + "_" + pro + ".csv")
+        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + uti + "_" + pro + "-wet.csv")
 
     df_kpi = df_kpi_0.drop(to_drop, axis=1)
 
+    df_wrc0 = pd.read_csv("data/Water_" + cas + "-Simulated.csv")
+    df_wrc = df_wrc0.iloc[:, [0, -1]]
+
     df_mat.sort_values(by=['MOF'], inplace=True)
+    df_wrc.sort_values(by=['MOF'], inplace=True)
     df_kpi.sort_values(by=['MOF'], inplace=True)
-    dataset = pd.merge(df_mat, df_kpi, on="MOF")
+    dataset0 = pd.merge(df_mat, df_wrc, on="MOF")
+    dataset = pd.merge(dataset0, df_kpi, on="MOF")
+    dataset.replace([np.inf, -np.inf], np.nan, inplace=True)
+    
+    if cas == "Cement":
+        dataset["LCOE"]=[0]*dataset.shape[0]
+        dataset.dropna(axis=0, inplace=True)
+        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
+    else:
+        dataset.dropna(axis=0, inplace=True)
+        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
 
     return dataset
 
@@ -46,8 +57,8 @@ def make_plot(dataset, xlabel, ylabel, zlabel, df_keys, xlog, ylog, zlog, materi
         dataset_pos[zlabel] = np.log(dataset_pos[zlabel])
 
     color_by = zlabel
-    source = bmd.ColumnDataSource(data=dataset_pos)
-    hover = bmd.HoverTool(tooltips= [("MOF", "@MOF")])
+    source = ColumnDataSource(data=dataset_pos)
+    hover = HoverTool(tooltips= [("MOF", "@MOF")])
 
     p = figure(height=HEIGHT, width=WIDTH, toolbar_location='above', x_axis_type=xlog, y_axis_type=ylog,
                tools=['pan', 'wheel_zoom', 'box_zoom', 'save', 'reset', 'tap', hover], active_drag='box_zoom')
@@ -63,14 +74,14 @@ def make_plot(dataset, xlabel, ylabel, zlabel, df_keys, xlog, ylog, zlog, materi
     p.yaxis.major_label_text_font_size = FONT_SIZE_AXIS
 
     colors = np.array(source.data[color_by])
-    cmap = bmd.LinearColorMapper(palette=Turbo256, low=min(colors), high=max(colors))
+    cmap = LinearColorMapper(palette=Turbo256, low=min(colors), high=max(colors))
 
     # Update the plot when you have a structure of interest
     if material == "None":
         p.circle(xlabel, ylabel, size=DATA_SIZE, source=source, fill_color={'field': color_by, 'transform': cmap}, alpha=0.5)
     else:
         dataset_pos_1 = dataset_pos[dataset_pos["MOF"]==material]
-        source2 = bmd.ColumnDataSource(data=dataset_pos_1)
+        source2 = ColumnDataSource(data=dataset_pos_1)
         p.circle(xlabel, ylabel, size=DATA_SIZE, source=source, fill_color={'field': color_by, 'transform': cmap}, alpha=0.1)
         p.diamond(xlabel, ylabel, size=DATA_SIZE, source=source2, alpha=1.0, line_color="black", fill_color="red")
 
@@ -80,12 +91,12 @@ def make_plot(dataset, xlabel, ylabel, zlabel, df_keys, xlog, ylog, zlog, materi
     if yref:
         p.line([min(dataset_pos[xlabel]), max(dataset_pos[xlabel])], [yref, yref], dash="dashed", color="black", line_width=2.0, alpha=1.0)
 
-    cbar = bmd.ColorBar(color_mapper=cmap, location=(0, 0), major_label_text_font_size="10pt")
+    cbar = ColorBar(color_mapper=cmap, location=(0, 0), major_label_text_font_size="10pt")
     p.add_layout(cbar, 'right')
     p.add_layout(Title(text=zax, align="center", text_font_size="13pt", text_font_style="normal"), "right")
     
     # Link the data points to the table
-    url = "https://prisma.matcloud.xyz/Table?name=@MOF"
+    url = "https://prisma.materialscloud.io/Table?name=@MOF"
     taptool = p.select(type=TapTool)
     taptool.callback = OpenURL(url=url)
     
@@ -96,13 +107,10 @@ def update_source(attr, old, new):
     region = region_select.value
     source = source_select.value
 
-    if region == "Switzerland":
+    if region == "Switzerland" or region == "United Kingdom 2022":
         source_select.options = [sources[0], sources[2]]
         if source != "Cement":
             source_select.value = source_select.options[0]
-    elif region == "United Kingdom 2022":
-        source_select.options = [sources[0]]
-        source_select.value = source_select.options[0]
     else:
         source_select.options = sources
 

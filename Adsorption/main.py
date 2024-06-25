@@ -1,10 +1,9 @@
 ''' MOF Adsorption Properties '''
-import bokeh.models as bmd
 import pandas as pd
 
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Whisker, Range1d, Spacer, ColumnDataSource, Select, StringFormatter, DataTable, TableColumn, Button
+from bokeh.models import Whisker, Range1d, Spacer, ColumnDataSource, Select, StringFormatter, DataTable, TableColumn, Button, CustomJS
 from bokeh.plotting import figure 
 from config_ads import *
 from decimal import Decimal
@@ -105,7 +104,7 @@ def Download_properties_handler(structure):
     new_df = csv_Row_to_Column(df_MOF)
     lenght_DF = len(new_df)
 
-    df_bokeh = bmd.ColumnDataSource(new_df)
+    df_bokeh = ColumnDataSource(new_df)
 
     try:    
         download_button.tags = [lenght_DF, df_bokeh, structure]
@@ -116,7 +115,7 @@ def Download_properties_handler(structure):
 
 def make_plot(data_source, ylabel, df_keys):
     """A Bokeh script"""
-    source = bmd.ColumnDataSource(data=data_source)
+    source = ColumnDataSource(data=data_source)
     source_error = ColumnDataSource(data=dict(base=data_source["pressure"], lower=data_source[ylabel+"_lower"],
                                               upper=data_source[ylabel+"_upper"]))
     
@@ -170,15 +169,15 @@ ylabels = {LABELS[i]:KEYS[i] for i in range(len(KEYS))}
 structure_select = Select(title='Structure', options=structures, value=get_name_from_url(), width=WWIDTH)
 molecule_select = Select(title='Molecule', options=MOLECULES, value=defaults[1], width=WWIDTH)
 ylabel_select = Select(title="Label (y-axis)", options=list(ylabels.keys()), value=defaults[2], width=WWIDTH)
-download_button = bmd.Button(label="Download Properties", button_type='primary', tags = [27, None , 'None'], disabled = True, width=WWIDTH)
-download_button.js_on_click(bmd.CustomJS(code=open(join(dirname(__file__), "static/js/download_csv.js")).read()))
+download_button = Button(label="Download Properties", button_type='primary', tags = [27, None , 'None'], disabled = True, width=WWIDTH)
+download_button.js_on_click(CustomJS(code=open(join(dirname(__file__), "static/js/download_csv.js")).read()))
 
 ## Get the initial plot data
 table_data, plot_data = get_dataset(get_name_from_url(), defaults[1])
 
 ## Make the table
 columns = [TableColumn(field='henry',title='Henry Regime Properties',formatter=StringFormatter(text_align="center"))]
-table = DataTable(source=table_data, columns=columns, width=250, height = 150, header_row=False, index_position=None)
+table = DataTable(source=table_data, columns=columns, width=250, height=150, header_row=False, index_position=None)
      
 for w in [structure_select, molecule_select, ylabel_select]:
     w.on_change('value', update_plot)

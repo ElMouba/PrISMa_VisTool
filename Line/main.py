@@ -1,16 +1,14 @@
 ''' Case Study Line Plots '''
 
-import bokeh.models as bmd
 import pandas as pd
-import yaml
+import numpy as np
 import os
 
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import LabelSet, ColumnDataSource, MultiChoice, Select, CustomJS, Spacer, Div, Button
+from bokeh.models import LabelSet, ColumnDataSource, MultiChoice, Select, CustomJS, Spacer, Div, Button, HoverTool, Panel, widgets
 from bokeh.plotting import figure
 from config_lin import *
-from os.path import dirname, join
 
 from jsmol_bokeh_extension import JSMol
 
@@ -25,15 +23,29 @@ def get_dataset(region, source, process, utility):
     pro = case_yml["Process"][process]
 
     if utility == "w/ Heat Extraction":
-        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + pro + ".csv")
+        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + pro + "-wet.csv")
     else:
-        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + uti + "_" + pro + ".csv")
+        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + uti + "_" + pro + "-wet.csv")
 
     df_kpi = df_kpi_0.drop(to_drop, axis=1)
 
+    df_wrc0 = pd.read_csv("data/Water_" + cas + "-Simulated.csv")
+    df_wrc = df_wrc0.iloc[:, [0, -1]]
+
     df_mat.sort_values(by=['MOF'], inplace=True)
+    df_wrc.sort_values(by=['MOF'], inplace=True)
     df_kpi.sort_values(by=['MOF'], inplace=True)
-    dataset = pd.merge(df_mat, df_kpi, on="MOF")
+    dataset0 = pd.merge(df_mat, df_wrc, on="MOF")
+    dataset = pd.merge(dataset0, df_kpi, on="MOF")
+    dataset.replace([np.inf, -np.inf], np.nan, inplace=True)
+    
+    if cas == "Cement":
+        dataset["LCOE"]=[0]*dataset.shape[0]
+        dataset.dropna(axis=0, inplace=True)
+        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
+    else:
+        dataset.dropna(axis=0, inplace=True)
+        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
 
     return dataset
 
@@ -114,8 +126,8 @@ def make_plot(data_source:pd.DataFrame, matKPIsLabels:list, procKPIsLabels:list,
     """
     source_data, structures = prep_data_plot(data_source, matKPIsLabels, procKPIsLabels, teKPIsLabels, lcaKPIsLabels, df_keys, top)
 
-    source = bmd.ColumnDataSource(data=source_data)
-    hover = bmd.HoverTool(tooltips= [("MOF", "@MOF")])
+    source = ColumnDataSource(data=source_data)
+    hover = HoverTool(tooltips= [("MOF", "@MOF")])
 
     label_tot = matKPIsLabels + procKPIsLabels + teKPIsLabels + lcaKPIsLabels
     label_full = [i + " (" + df_keys["Unit"][df_keys["Label"]==i].iloc[0] + ")" for i in label_tot]
@@ -183,13 +195,10 @@ def update_source(attr, old, new):
     region = region_select.value
     source = source_select.value
 
-    if region == "Switzerland":
+    if region == "Switzerland" or region == "United Kingdom 2022":
         source_select.options = [sources[0], sources[2]]
         if source != "Cement":
             source_select.value = source_select.options[0]
-    elif region == "United Kingdom 2022":
-        source_select.options = [sources[0]]
-        source_select.value = source_select.options[0]
     else:
         source_select.options = sources
 
@@ -246,8 +255,6 @@ def update_plot(attrname, old, new):
         tabs = Update_structureTabs(CURRENT_STRUCTURES)
         layout.children[0].children[3].children[3].tabs = tabs
     
-
-
 def get_cif_content_from_disk(filename):
     """ Load CIF content from disk """
     with open(filename, 'r') as f:
@@ -308,7 +315,7 @@ def create_tabPanel(structureName:str):
                         align = 'center',
                         )
     tab_col = column(nameDisplay, applet_new)
-    panel = bmd.Panel(child = tab_col, title = structureName)
+    panel = Panel(child = tab_col, title = structureName)
     return panel
 
 def Update_structureTabs(structures_names:list, focusTab = None):
@@ -328,7 +335,7 @@ def Update_structureTabs(structures_names:list, focusTab = None):
             panel = create_tabPanel(structure)
         else:
             print(f'Creating Dummy pannel for {i, structure}')
-            panel =bmd.Panel(child = Spacer(height= 2), title = structure)
+            panel = Panel(child = Spacer(height= 2), title = structure)
 
         tabs.append(panel)
     return tabs
@@ -384,8 +391,8 @@ for widget in [region_select, source_select]:
 
 applet = Spacer(height = 5)
 
-tab  =bmd.Panel(child = Spacer(height= 2), title = 'nan')
-tabs_structure = bmd.widgets.Tabs(tabs=[tab], visible = False)
+tab = Panel(child = Spacer(height= 2), title = 'nan')
+tabs_structure = widgets.Tabs(tabs=[tab], visible = False)
 tabs_structure.on_change('active', on_tab_change)
 
 help_case = create_LinkedButton(HELPS_EXTRA['CaseStudies'])

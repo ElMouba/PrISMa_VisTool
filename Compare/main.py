@@ -1,14 +1,12 @@
-''' Case Study 3D Plots '''
-
-import bokeh.models as bmd
+''' Case Study Compare '''
 import pandas as pd
+import numpy as np
 
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import OpenURL, TapTool, Select, Paragraph, Spacer
+from bokeh.models import OpenURL, TapTool, Select, Paragraph, Spacer, ColumnDataSource, HoverTool
 from bokeh.plotting import figure
 from config_com import *
-from os.path import dirname, join
 
 ## Functions needed
 # Use the user options to extract the required data
@@ -20,15 +18,29 @@ def get_dataset(region, source, process, utility):
     pro = case_yml["Process"][process]
 
     if utility == "w/ Heat Extraction":
-        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + pro + ".csv")
+        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + pro + "-wet.csv")
     else:
-        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + uti + "_" + pro + ".csv")
+        df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + uti + "_" + pro + "-wet.csv")
 
     df_kpi = df_kpi_0.drop(to_drop, axis=1)
 
+    df_wrc0 = pd.read_csv("data/Water_" + cas + "-Simulated.csv")
+    df_wrc = df_wrc0.iloc[:, [0, -1]]
+
     df_mat.sort_values(by=['MOF'], inplace=True)
+    df_wrc.sort_values(by=['MOF'], inplace=True)
     df_kpi.sort_values(by=['MOF'], inplace=True)
-    dataset = pd.merge(df_mat, df_kpi, on="MOF")
+    dataset0 = pd.merge(df_mat, df_wrc, on="MOF")
+    dataset = pd.merge(dataset0, df_kpi, on="MOF")
+    dataset.replace([np.inf, -np.inf], np.nan, inplace=True)
+    
+    if cas == "Cement":
+        dataset["LCOE"]=[0]*dataset.shape[0]
+        dataset.dropna(axis=0, inplace=True)
+        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
+    else:
+        dataset.dropna(axis=0, inplace=True)
+        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
 
     return dataset
 
@@ -52,8 +64,8 @@ def make_plot(dataset1, dataset2, label, df_keys, log, material):
     dataset_pos = pd.DataFrame({"MOF":MOFs, "label1":label_1, "label2":label_2})
     material_select.options = ["None"] + MOFs
     
-    source = bmd.ColumnDataSource(data=dataset_pos)
-    hover = bmd.HoverTool(tooltips= [("MOF", "@MOF")])
+    source = ColumnDataSource(data=dataset_pos)
+    hover = HoverTool(tooltips= [("MOF", "@MOF")])
 
     p = figure(height=HEIGHT, width=WIDTH, toolbar_location='above', x_axis_type=log, y_axis_type=log,
                tools=['pan', 'wheel_zoom', 'box_zoom', 'save', 'reset', 'tap', hover], active_drag='box_zoom')
@@ -72,12 +84,12 @@ def make_plot(dataset1, dataset2, label, df_keys, log, material):
         p.circle("label1", "label2", size=DATA_SIZE, source=source, alpha=0.5, fill_color="blue")
     else:
         dataset_pos_1 = dataset_pos[dataset_pos["MOF"]==material]
-        source2 = bmd.ColumnDataSource(data=dataset_pos_1)
+        source2 = ColumnDataSource(data=dataset_pos_1)
         p.circle("label1", "label2", size=DATA_SIZE, source=source, alpha=0.1, fill_color="blue")
         p.diamond("label1", "label2", size=DATA_SIZE, source=source2, alpha=1.0, line_color="black", fill_color="red")
    
     # Link the data points to the table
-    url = "https://prisma.matcloud.xyz/Table?name=@MOF"
+    url = "https://prisma.materialscloud.io/Table?name=@MOF"
     taptool = p.select(type=TapTool)
     taptool.callback = OpenURL(url=url)
     
@@ -88,13 +100,10 @@ def update_source1(attr, old, new):
     region = region1_select.value
     source = source1_select.value
 
-    if region == "Switzerland":
+    if region == "Switzerland" or region == "United Kingdom 2022":
         source1_select.options = [sources[0], sources[2]]
         if source != "Cement":
             source1_select.value = source1_select.options[0]
-    elif region == "United Kingdom 2022":
-        source1_select.options = [sources[0]]
-        source1_select.value = source1_select.options[0]
     else:
         source1_select.options = sources
 
@@ -102,15 +111,12 @@ def update_source2(attr, old, new):
     region = region2_select.value
     source = source2_select.value
 
-    if region == "Switzerland":
+    if region == "Switzerland" or region == "United Kingdom 2022":
         source2_select.options = [sources[0], sources[2]]
         if source != "Cement":
             source2_select.value = source2_select.options[0]
-    elif region == "United Kingdom 2022":
-        source2_select.options = [sources[0]]
-        source2_select.value = source2_select.options[0]
     else:
-        source2_select.options = sources
+        source2_select.options = sources 
 
 def update_utility1(attr, old, new):
     region = region1_select.value

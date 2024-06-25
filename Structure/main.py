@@ -10,18 +10,17 @@ import subprocess
 from config_str import STRUCTURES, WWIDTH,JSMOL_SCRIPT
 
 from bokeh.layouts import layout, widgetbox, column, row
-import bokeh.models as bmd
 from bokeh.io import curdoc
 from jsmol_bokeh_extension import JSMol
-from bokeh.models import ColumnDataSource, TextInput
+from bokeh.models import ColumnDataSource, TextInput, Div, Spacer
 from bokeh.models.widgets import DataTable, TableColumn, HTMLTemplateFormatter, StringFormatter, PreText, Button, Select
 
-html = bmd.Div(text=open(join(dirname(__file__), 'description.html')).read(),
+html = Div(text=open(join(dirname(__file__), 'description.html')).read(),
                width=800)
 
 download_js = open(join(dirname(__file__), 'static','js', 'download.js')).read()
 
-script_source = bmd.ColumnDataSource()
+script_source = ColumnDataSource()
 
 plot_info = PreText(text='', width=300, height=100)
 
@@ -160,7 +159,7 @@ ciffile = f"{structure_name}.cif"
 cifcontent = get_cif_content_from_disk(ciffile)
 applet = get_applet(cifcontent)
 
-duplicate_btm = bmd.Button(label = 'Enlarge Structure')
+duplicate_btm = Button(label = 'Enlarge Structure')
 duplicate_btm.on_click(extend_structure)
 
 structure_select = Select(title='Structure', options=STRUCTURES, value=get_name_from_url(), width=WWIDTH)
@@ -175,7 +174,7 @@ ly = row(column(structure_select,
             table_widget(structure_name),
             #btn_download_table
             ),
-            bmd.Spacer(width = 50),
+            Spacer(width = 50),
         column(
             applet, 
             #btn_download_cif, 

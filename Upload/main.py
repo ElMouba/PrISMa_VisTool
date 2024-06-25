@@ -5,17 +5,11 @@ from bokeh.layouts import column, row
 from bokeh.models import Spacer, FileInput, ColumnDataSource, Select, TextInput, TextAreaInput, DataTable, TableColumn
 from bokeh.models import TextInput, CustomJS, Button, Div
 from config_upl import *
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
 
-import smtplib
 import base64
 import datetime
 
 import json
-
-
 
 ## All input data needed
 firstname_input = TextInput(value="", title="First Name*", width=WWIDTH)
