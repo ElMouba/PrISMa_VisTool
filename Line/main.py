@@ -30,6 +30,16 @@ def get_dataset(region, source, process, utility):
     else:
         df_kpi_0 = pd.read_csv("data/" + cas + "_Storage_" + reg + "_" + uti + "_" + pro + "-wet.csv")
 
+    # Electric energy is only valid when vacuum is added
+    # LCOE is only valid in case of power plants
+    if pro == "Temperature Swing Adsorption":
+        drops = to_drop + ["el_energy"]
+    elif cas == "Cement":
+        drops = to_drop + ["LCOE"]
+    elif pro == "Temperature Swing Adsorption" and cas == "Cement":
+        drops = to_drop + ["el_energy", "LCOE"]
+    else:
+        drops = to_drop
     df_kpi = df_kpi_0.drop(to_drop, axis=1)
 
     df_wrc0 = pd.read_csv("data/Water_" + cas + "-Simulated.csv")
@@ -41,14 +51,8 @@ def get_dataset(region, source, process, utility):
     dataset0 = pd.merge(df_mat, df_wrc, on="MOF")
     dataset = pd.merge(dataset0, df_kpi, on="MOF")
     dataset.replace([np.inf, -np.inf], np.nan, inplace=True)
-    
-    if cas == "Cement":
-        dataset["LCOE"]=[0]*dataset.shape[0]
-        dataset.dropna(axis=0, inplace=True)
-        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
-    else:
-        dataset.dropna(axis=0, inplace=True)
-        dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
+    dataset.dropna(axis=0, inplace=True)
+    dataset["spec_cool"]=list(np.array(dataset["spec_cool"])*-1)
 
     return dataset
 
